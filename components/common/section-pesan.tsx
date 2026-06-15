@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { AnimatePresence, motion } from 'framer-motion'
 import Image from 'next/image'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { toast } from 'sonner'
 import BgFrame from '../assets/images/section-pesan/bg-section-pesan.svg'
 
@@ -15,18 +15,26 @@ import Gumiho from '@/components/assets/images/section-pesan/gumiho.svg'
 import Kuma from '@/components/assets/images/section-pesan/kuma.svg'
 import Kyo from '@/components/assets/images/section-pesan/kyo.svg'
 import Spike from '@/components/assets/images/section-pesan/spike.svg'
-import { createMessage } from '@/hooks/useApi'
-import { Guest, Message } from '@/types'
+import { fetchMessages, submitMessage, AdaptedGuest, MessageData } from '@/lib/api'
+
+interface ClientMessage {
+  id: string
+  name: string
+  message: string
+  createdAt: string
+  avatar: unknown
+}
 
 interface SectionPesanProps {
-  guest: Guest
+  guest: AdaptedGuest
+  eventId: string
 }
 const avatars = [Ciyo, Gumiho, Kuma, Kyo, Spike]
 
-const SectionPesan: React.FC<SectionPesanProps> = ({ guest }) => {
+const SectionPesan: React.FC<SectionPesanProps> = ({ guest, eventId }) => {
   const [name, setName] = useState('')
   const [message, setMessage] = useState('')
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<ClientMessage[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Get random avatar
@@ -34,18 +42,15 @@ const SectionPesan: React.FC<SectionPesanProps> = ({ guest }) => {
     return avatars[Math.floor(Math.random() * avatars.length)]
   }
 
-  // Fetch messages on component mount
-  useEffect(() => {
-    fetchMessages()
-  }, [])
-
-  const fetchMessages = async () => {
+  const fetchMessagesData = useCallback(async () => {
     try {
-      const response = await fetch('/api/messages')
-      if (response.ok) {
-        const data = await response.json()
-        const messagesWithAvatars = data.map((msg: Message) => ({
-          ...msg,
+      const result = await fetchMessages(eventId)
+      if (result && result.messages) {
+        const messagesWithAvatars = result.messages.map((msg: MessageData) => ({
+          id: msg.id,
+          name: msg.sender_name,
+          message: msg.message_text,
+          createdAt: msg.created_at,
           avatar: avatars[Math.floor(Math.random() * avatars.length)],
         }))
         setMessages(messagesWithAvatars)
@@ -53,7 +58,14 @@ const SectionPesan: React.FC<SectionPesanProps> = ({ guest }) => {
     } catch (error) {
       console.error('Error fetching messages:', error)
     }
-  }
+  }, [eventId])
+
+  // Fetch messages on component mount
+  useEffect(() => {
+    if (eventId) {
+      fetchMessagesData()
+    }
+  }, [eventId, fetchMessagesData])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,13 +83,20 @@ const SectionPesan: React.FC<SectionPesanProps> = ({ guest }) => {
     setIsSubmitting(true)
 
     try {
-      const response = await createMessage({
-        guestId: guest.id,
-        message: message.trim(),
-        name: name.trim() || guest.nama,
+      const response = await submitMessage({
+        event_id: eventId,
+        guest_id: guest.id,
+        sender_name: name.trim() || guest.nama,
+        message_text: message.trim(),
       })
 
-      const newMessage = await { ...response, avatar: getRandomAvatar() }
+      const newMessage = {
+        id: response.id,
+        name: response.sender_name,
+        message: response.message_text,
+        createdAt: response.created_at,
+        avatar: getRandomAvatar(),
+      }
 
       // Add new message to the list
       setMessages((prev) => [newMessage, ...prev])

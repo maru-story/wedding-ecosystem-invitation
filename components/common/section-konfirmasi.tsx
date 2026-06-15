@@ -18,18 +18,18 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { createAttendance } from '@/hooks/useApi'
-import { Guest } from '@/types'
+import { submitRsvp, AdaptedGuest } from '@/lib/api'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import React, { useState } from 'react'
 import { toast } from 'sonner'
 
 interface SectionKonfirmasiProps {
-  guest?: Guest | null
+  guest?: AdaptedGuest | null
+  eventId: string
 }
 
-const SectionKonfirmasi: React.FC<SectionKonfirmasiProps> = ({ guest }) => {
+const SectionKonfirmasi: React.FC<SectionKonfirmasiProps> = ({ guest, eventId }) => {
   const [name, setName] = useState('')
   const [attendance, setAttendance] = useState('akad-dan-resepsi')
   const [guestCount, setGuestCount] = useState('1')
@@ -58,18 +58,18 @@ const SectionKonfirmasi: React.FC<SectionKonfirmasiProps> = ({ guest }) => {
     setIsSubmitting(true)
 
     try {
-      await createAttendance({
-        guestId: guest.id,
-        nama: name || guest.nama,
-        konfirmasi:
-          attendance === 'akad'
-            ? 'Akad'
-            : attendance === 'resepsi'
-              ? 'Resepsi'
-              : attendance === 'akad-dan-resepsi'
-                ? 'Akad dan Resepsi'
-                : 'Maaf, Saya belum bisa hadir',
-        jumlahTamu: attendance === 'cannot-attend' ? 0 : parseInt(guestCount),
+      const attendanceMapping: Record<string, 'akad' | 'resepsi' | 'both' | 'decline'> = {
+        'akad': 'akad',
+        'resepsi': 'resepsi',
+        'akad-dan-resepsi': 'both',
+        'cannot-attend': 'decline',
+      }
+
+      await submitRsvp({
+        guest_id: guest.id,
+        event_id: eventId,
+        attendance: attendanceMapping[attendance] || 'both',
+        guest_count: attendance === 'cannot-attend' ? 0 : parseInt(guestCount),
       })
 
       toast.success('Konfirmasi berhasil dikirim!')
@@ -79,7 +79,6 @@ const SectionKonfirmasi: React.FC<SectionKonfirmasiProps> = ({ guest }) => {
     } finally {
       setIsSubmitting(false)
     }
-    // Add your form submission logic here
   }
 
   const decrementGuests = () => {
