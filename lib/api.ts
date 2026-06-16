@@ -149,29 +149,7 @@ export async function submitRsvp(payload: RsvpPayload): Promise<RsvpResponse> {
   return response.json();
 }
 
-/**
- * Fetch existing RSVP for a guest.
- * Returns null if the guest hasn't RSVP'd yet.
- */
-export async function fetchRsvp(guestId: string): Promise<RsvpResponse | null> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/rsvp/${encodeURIComponent(guestId)}`, {
-      cache: 'no-store',
-    });
 
-    if (response.status === 404) {
-      return null;
-    }
-
-    if (!response.ok) {
-      return null;
-    }
-
-    return response.json();
-  } catch {
-    return null;
-  }
-}
 
 // --- Messages API ---
 
