@@ -1,6 +1,10 @@
 'use client'
 
-import BgSectionStory from '@/components/assets/images/section-story/bg-section-story.svg'
+import IconSvg from '@/components/assets/images/card-open-wedding/icon.svg'
+import BgSectionStory from '@/components/assets/images/section-story/bg-our-story-section.svg'
+import DividerOurStory from '@/components/assets/images/section-story/divider-our-story.svg'
+import FlowerOurStoryBottomRight from '@/components/assets/images/section-story/flower-our-story-bottom-right.svg'
+import FotoStoryBottom from '@/components/assets/images/section-story/foto-our-story-bottom.png'
 import {
   Carousel,
   CarouselContent,
@@ -8,64 +12,65 @@ import {
   type CarouselApi,
 } from '@/components/ui/carousel'
 import { cn } from '@/lib/utils'
-import { motion, Variants } from 'framer-motion'
-import Image, { StaticImageData } from 'next/image'
+import { motion } from 'framer-motion'
+import Image from 'next/image'
 import React, { useEffect, useState } from 'react'
+import { SectionData } from '@/lib/api'
 
-// Define the story chapter type
 interface StoryChapter {
   id: number
+  phase?: string
   title: string
-  subtitle: string
-  bgTitle: string
-  image: StaticImageData | string
+  subtitle?: string
+  date?: string
+  story?: string
 }
 
-// Create an array of story chapters
-const storyChapters: StoryChapter[] = [
-  {
-    id: 1,
-    title: 'Chapter 1',
-    subtitle: 'HEY!! NICE TO MEET YOU',
-    bgTitle: '#703F4E',
-    image: `${process.env.NEXT_PUBLIC_URL_IMAGE}section-story-chapter-1.svg`,
-  },
-  {
-    id: 2,
-    title: 'Chapter 2',
-    subtitle: 'KINDA A DATE?',
-    bgTitle: '#664550',
-    image: `${process.env.NEXT_PUBLIC_URL_IMAGE}section-story-chapter-2.svg`,
-  },
-  {
-    id: 3,
-    title: 'Chapter 3',
-    subtitle: '" JUST THE TWO OF US "',
-    bgTitle: '#80423C',
-    image: `${process.env.NEXT_PUBLIC_URL_IMAGE}section-story-chapter-3.svg`,
-  },
-  {
-    id: 4,
-    title: 'Chapter 4',
-    subtitle: 'LOVE IN DIFFERENT TIME ZONES',
-    bgTitle: '#6D394E',
-    image: `${process.env.NEXT_PUBLIC_URL_IMAGE}section-story-chapter-4.svg`,
-  },
-  {
-    id: 5,
-    title: 'Chapter 5',
-    subtitle: 'A NEW CHAPTER BEGINS',
-    bgTitle: '#85352F',
-    image: `${process.env.NEXT_PUBLIC_URL_IMAGE}section-story-chapter-5.svg`,
-  },
-]
+interface SectionStoryProps {
+  section?: SectionData
+}
 
-const SectionStory: React.FC = () => {
+const SectionStory: React.FC<SectionStoryProps> = ({ section }) => {
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
-  const [hasViewedOnce, setHasViewedOnce] = useState<boolean[]>(
-    Array(storyChapters.length).fill(false)
-  )
+  const [isInView, setIsInView] = useState(false)
+
+  const content = section?.content as {
+    background_image?: string
+    bottom_image?: string
+    intro_title?: string
+    intro_subtitle?: string
+    outro_title?: string
+    outro_subtitle?: string
+    phase_1_title?: string
+    phase_1_date?: string
+    phase_1_story?: string
+    phase_2_title?: string
+    phase_2_date?: string
+    phase_2_story?: string
+    phase_3_title?: string
+    phase_3_date?: string
+    phase_3_story?: string
+    phases?: Array<{ title: string; date: string; story: string }>
+  } | undefined
+
+  // Listen for live preview updates from the dashboard editor
+  const [liveContent, setLiveContent] = useState(content)
+
+  useEffect(() => {
+    setLiveContent(content)
+  }, [content])
+
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'CMS_PREVIEW_UPDATE' && e.data?.section_type === 'story') {
+        setLiveContent(e.data.content)
+      }
+    }
+
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [])
 
   useEffect(() => {
     if (!api) {
@@ -73,166 +78,300 @@ const SectionStory: React.FC = () => {
     }
 
     const handleSelect = () => {
-      const newCurrent = api.selectedScrollSnap()
-      setCurrent(newCurrent)
-
-      // Mark this slide as viewed
-      setHasViewedOnce((prev) => {
-        const newArray = [...prev]
-        newArray[newCurrent] = true
-        return newArray
-      })
+      setCurrent(api.selectedScrollSnap())
     }
 
     api.on('select', handleSelect)
-
-    // Initialize the first slide as viewed when the carousel loads
-    setHasViewedOnce((prev) => {
-      const newArray = [...prev]
-      newArray[0] = true
-      return newArray
-    })
-
-    // Cleanup
     return () => {
       api.off('select', handleSelect)
     }
   }, [api])
 
-  // Animation variants
-  const fadeInVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.8,
-        ease: 'easeOut',
-      },
+  const introTitle = liveContent?.intro_title || 'From cubicles to forever'
+  const introSubtitle = liveContent?.intro_subtitle || 'a love that surprised us both'
+  const outroTitle = liveContent?.outro_title || "and so, on July 11 2026 we're making it official"
+  const outroSubtitle = liveContent?.outro_subtitle || "We'd love for you to be there when we do."
+
+  const bgImage = liveContent?.background_image || BgSectionStory
+  const bottomImage = liveContent?.bottom_image || FotoStoryBottom
+
+  // Get phases dynamically from CMS content
+  const phaseList = liveContent?.phases || [
+    {
+      title: liveContent?.phase_1_title || 'Coworkers',
+      date: liveContent?.phase_1_date || '2022',
+      story: liveContent?.phase_1_story || "Just coworkers. Or so we thought. It started at work, same team, same coffee runs, same complaints about the same things. We had so much in common. Everything clicked, except BTS and Persib, which we'll never agree. And yes, that debate is still ongoing.",
     },
+    {
+      title: liveContent?.phase_2_title || 'Growth',
+      date: liveContent?.phase_2_date || '2023',
+      story: liveContent?.phase_2_story || "Somewhere along the way, we stopped pretending it was just friendship and let it grow into something real. We escalated into a relationship, because we have found peace in each other's love, and that was reason enough.",
+    },
+    {
+      title: liveContent?.phase_3_title || 'Forever',
+      date: liveContent?.phase_3_date || '2025',
+      story: liveContent?.phase_3_story || "We decided: let's do this forever. We decided to get married, because the idea of growing old together and bickering is kinda fun, and we wouldn't want to do it with anyone else.",
+    }
+  ];
+
+  const PHASE_NAMES = ['FIRST PHASE', 'SECOND PHASE', 'THIRD PHASE', 'FOURTH PHASE', 'LAST PHASE'];
+
+  const storyChapters: StoryChapter[] = [
+    {
+      id: 1,
+      title: introTitle,
+      subtitle: introSubtitle,
+    },
+    ...phaseList.map((phase, idx) => {
+      // If it's the last phase in the array, label it "LAST PHASE"
+      const phaseLabel = idx === phaseList.length - 1 ? 'LAST PHASE' : PHASE_NAMES[idx] || `PHASE ${idx + 1}`;
+      return {
+        id: idx + 2,
+        phase: phaseLabel,
+        title: phase.title,
+        date: phase.date,
+        story: phase.story,
+      };
+    }),
+    {
+      id: phaseList.length + 2,
+      title: outroTitle,
+      subtitle: outroSubtitle,
+    },
+  ]
+
+  const renderIntroTitle = (title: string) => {
+    if (!liveContent?.intro_title || title === 'From cubicles to forever') {
+      return (
+        <>
+          From cubicles<br />to forever
+        </>
+      )
+    }
+    return title.split('\n').map((line, i) => (
+      <React.Fragment key={i}>
+        {i > 0 && <br />}
+        {line}
+      </React.Fragment>
+    ))
   }
 
-  const slideUpVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.6,
-        ease: 'easeOut',
-        delay: 0.2,
-      },
-    },
+  const renderOutroTitle = (title: string) => {
+    if (!liveContent?.outro_title || title === "and so, on July 11 2026 we're making it official") {
+      return (
+        <>
+          and so, on<br />
+          <span className="text-[#C47C9E] font-little-hands">July 11, 2026</span><br />
+          we&apos;re making it<br />
+          official
+        </>
+      )
+    }
+
+    const lines = title.split('\n')
+    return lines.map((line, i) => {
+      const isDateLine = /^[0-9A-Za-z\s,.-]+$/.test(line) && (/\b\d{4}\b/.test(line) || i === 1);
+      return (
+        <React.Fragment key={i}>
+          {i > 0 && <br />}
+          {isDateLine ? (
+            <span className="text-[#C47C9E] font-little-hands">{line}</span>
+          ) : (
+            line
+          )}
+        </React.Fragment>
+      )
+    })
   }
 
   return (
-    <section className="section-story overflow-hidden" id="section-story">
+    <motion.section
+      className="relative w-full overflow-hidden"
+      id="section-story"
+      onViewportEnter={() => setIsInView(true)}
+      viewport={{ once: true, amount: 0.15 }}
+    >
       <div className="relative aspect-9/16 w-full">
-        <Image
-          src={BgSectionStory}
-          loading="lazy"
-          alt="bg-section-story"
-          width={0}
-          height={0}
-          sizes="100vw"
-          className="h-auto w-full scale-102"
-        />
-
-        <div className="absolute top-1/2 left-1/2 w-[320px] -translate-x-1/2 -translate-y-1/2">
-          <Carousel setApi={setApi} className="w-full">
-            <CarouselContent>
-              {storyChapters.map((chapter, index) => (
-                <CarouselItem
-                  key={chapter.id}
-                  className="flex flex-col items-center"
-                >
-                  {/* Only animate if this is the current slide or has been viewed before */}
-                  {current === index || hasViewedOnce[index] ? (
-                    <>
-                      {/* TITLE */}
-                      <motion.div
-                        initial="hidden"
-                        animate={current === index ? 'visible' : 'hidden'}
-                        variants={fadeInVariants}
-                        style={{ backgroundColor: chapter.bgTitle }}
-                        className="flex w-[310px] flex-col items-center justify-center rounded-tl-[20px] rounded-tr-[20px] p-2"
-                      >
-                        <p className="text-sm text-white uppercase">
-                          {chapter.title}
-                        </p>
-                        <p className="text-white">{chapter.subtitle}</p>
-                      </motion.div>
-
-                      <motion.div
-                        initial="hidden"
-                        animate={current === index ? 'visible' : 'hidden'}
-                        variants={slideUpVariants}
-                        className="grid h-auto w-[310px] content-center bg-[#E2E1E0] p-2"
-                      >
-                        {/* CONTENT CHAPTER */}
-                        <Image
-                          src={chapter.image}
-                          loading="lazy"
-                          alt={`${chapter.title}-story`}
-                          width={310}
-                          height={447}
-                        />
-                      </motion.div>
-                    </>
-                  ) : (
-                    <>
-                      {/* Non-animated fallback for slides that haven't been viewed yet */}
-                      <div
-                        style={{ backgroundColor: chapter.bgTitle, opacity: 0 }}
-                        className="flex w-[310px] flex-col items-center justify-center rounded-tl-[20px] rounded-tr-[20px] p-2"
-                      >
-                        <p className="text-sm text-white uppercase">
-                          {chapter.title}
-                        </p>
-                        <p className="text-white">{chapter.subtitle}</p>
-                      </div>
-                      <div className="grid h-auto w-[310px] content-center bg-[#E2E1E0] p-2 opacity-0">
-                        <Image
-                          src={chapter.image}
-                          loading="lazy"
-                          alt={`${chapter.title}-story`}
-                          width={310}
-                          height={447}
-                        />
-                      </div>
-                    </>
-                  )}
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
-
-          {/* Dots navigation with animation */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-            className="mt-4 flex justify-center gap-2"
-          >
-            {storyChapters.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => api?.scrollTo(index)}
-                className={cn(
-                  'h-3 w-3 rounded-full transition-all',
-                  current === index
-                    ? 'scale-125 bg-white'
-                    : 'bg-[#F2D5BD] opacity-70'
-                )}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </motion.div>
+        {/* Background cover */}
+        <div className="absolute inset-0">
+          <Image
+            src={bgImage}
+            alt="bg-section-story"
+            fill
+            className="object-cover"
+            loading="lazy"
+          />
         </div>
 
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-[#A0828E] px-10 py-4">
-          <p className="text-nowrap text-white uppercase">Our Story</p>
+        {/* Single Static Card Frame (Centered & Responsive) */}
+        <div className="absolute top-[37.5%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-[75%] max-w-[315px] aspect-315/360">
+          {/* Our Story Title Pill (above the card frame) */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: -20 }}
+            transition={{ duration: 0.6, ease: 'easeOut', delay: 0.4 }}
+            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 z-20 flex justify-center items-center pointer-events-none w-max"
+          >
+            <div className="bg-[#D08E61] border-[5px] border-[#C47C9E] rounded-full px-8 py-2.5 shadow-md flex items-center justify-center">
+              <span className="text-white text-lg sm:text-xl whitespace-nowrap tracking-wide leading-none select-none font-doodle-head uppercase">
+                Our Story
+              </span>
+            </div>
+          </motion.div>
+
+          {/* Custom Frame Background */}
+          <div className="box absolute inset-0 bg-[#DDD3C8]" />
+
+          {/* Inner Content Wrapper (contains Carousel and Dots) */}
+          <div className="relative z-20 w-full h-full flex flex-col justify-between items-center px-6 pt-8 pb-6 sm:px-8 sm:pt-9 sm:pb-7">
+            <Carousel setApi={setApi} className="w-full h-full grow flex items-center justify-center">
+              <CarouselContent className="h-full flex items-center">
+                {storyChapters.map((chapter, index) => (
+                  <CarouselItem key={chapter.id} className="flex justify-center items-center h-full">
+                    <motion.div
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={current === index ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
+                      transition={{ duration: 0.5, ease: 'easeOut' }}
+                      className="w-full flex flex-col justify-center items-center text-center text-black"
+                    >
+                      {index === 0 && (
+                        <>
+                          <Image
+                            src={IconSvg}
+                            alt="couple icon"
+                            width={32}
+                            height={32}
+                            className="mb-3.5 h-auto object-contain select-none pointer-events-none"
+                            loading="lazy"
+                          />
+                          <h3 className="font-doodle-head text-[28px] sm:text-[36px] leading-tight mb-2 select-none">
+                            {renderIntroTitle(chapter.title)}
+                          </h3>
+                          <p className="text-[11px] sm:text-[13px] tracking-wider uppercase opacity-75 select-none">
+                            {chapter.subtitle}
+                          </p>
+                        </>
+                      )}
+
+                      {index > 0 && index < storyChapters.length - 1 && (
+                        <>
+                          <span className="text-[10px] sm:text-[13px] tracking-widest uppercase opacity-60 mb-0.5 select-none font-medium">
+                            {chapter.phase}
+                          </span>
+                          <h3 className="text-[24px] sm:text-[32px] leading-none mb-0.5 select-none">
+                            {chapter.title}
+                          </h3>
+                          <span className="text-[18px] sm:text-[22px] text-[#C47C9E] mb-1.5 select-none">
+                            {chapter.date}
+                          </span>
+                          <p className="font-doodle-head text-[12px] sm:text-[15px] leading-relaxed max-w-[220px] select-none">
+                            {chapter.story}
+                          </p>
+                        </>
+                      )}
+
+                      {index === storyChapters.length - 1 && (
+                        <>
+                          <h3 className="font-doodle-head text-[26px] sm:text-[34px] leading-tight mb-2.5 select-none">
+                            {renderOutroTitle(chapter.title)}
+                          </h3>
+                          <p className="text-[11px] sm:text-[13px] tracking-wide uppercase opacity-75 select-none">
+                            {chapter.subtitle}
+                          </p>
+                        </>
+                      )}
+                    </motion.div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
+
+            {/* Dots navigation - inside the frame container */}
+            <div className="mt-3 flex justify-center gap-2 z-30">
+              {storyChapters.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => api?.scrollTo(index)}
+                  className={cn(
+                    'h-2.5 w-2.5 rounded-full transition-all duration-300',
+                    current === index
+                      ? 'scale-125 bg-[#7098BC]'
+                      : 'bg-[#BFBFBF]'
+                  )}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Custom Frame Border Overlay */}
+          <div className="box-inside absolute top-1/2 left-1/2 w-[92%] h-[93%] -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10" />
+        </div>
+
+        {/* Bottom Graphic Group */}
+        <div className="absolute bottom-0 left-0 w-full z-20 select-none pointer-events-none">
+          <div className="relative w-full">
+            {/* Photo at the bottom */}
+            <div className="relative w-full">
+              {typeof bottomImage === 'string' ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={bottomImage}
+                  alt="foto-our-story-bottom"
+                  className="w-full h-auto object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <Image
+                  src={bottomImage}
+                  alt="foto-our-story-bottom"
+                  sizes="100vw"
+                  className="w-full h-auto object-cover"
+                  loading="lazy"
+                />
+              )}
+            </div>
+
+            {/* Divider placed slightly above the photo */}
+            <div className="absolute top-[-15px] sm:top-[-25px] left-0 w-full z-30">
+              <div className="relative w-full">
+                <Image
+                  src={DividerOurStory}
+                  alt="divider-our-story"
+                  className="w-full h-auto"
+                  loading="lazy"
+                />
+                {/* Flower at the right corner of the divider */}
+                <motion.div
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-[18%] z-40 origin-center"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={isInView ? {
+                    opacity: 1,
+                    scale: [1, 1.03, 0.97, 1],
+                    rotate: [0, 4, -4, 0]
+                  } : {
+                    opacity: 0,
+                    scale: 0.5
+                  }}
+                  transition={{
+                    opacity: { duration: 0.8, delay: 0.3 },
+                    scale: { repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 1.2 },
+                    rotate: { repeat: Infinity, duration: 8, ease: 'easeInOut', delay: 1.2 }
+                  }}
+                >
+                  <Image
+                    src={FlowerOurStoryBottomRight}
+                    alt="flower-our-story-bottom-right"
+                    className="w-full h-auto"
+                    loading="lazy"
+                  />
+                </motion.div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </section>
+    </motion.section>
   )
 }
 

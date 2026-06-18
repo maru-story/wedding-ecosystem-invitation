@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 
 interface InvitationContextType {
   isInvitationOpen: boolean
-  openInvitation: () => void
+  openInvitation: (targetId?: string) => void
 
   progress: number
   setProgress: React.Dispatch<React.SetStateAction<number>>
@@ -54,7 +54,7 @@ export const InvitationProvider: React.FC<{ children: React.ReactNode }> = ({
     requestAnimationFrame(animateScroll)
   }
 
-  const openInvitation = () => {
+  const openInvitation = (targetId?: string) => {
     setIsInvitationOpen(true)
 
     // Enable scrolling when invitation is opened
@@ -62,12 +62,12 @@ export const InvitationProvider: React.FC<{ children: React.ReactNode }> = ({
       document.body.style.overflow = 'auto'
     }, 3000)
 
-    // Auto-scroll to section-pengantin after 3.5 seconds with custom animation
+    // Auto-scroll to target section after 3.5 seconds with custom animation
     setTimeout(() => {
-      const sectionPengantin = document.getElementById('section-pengantin')
-      if (sectionPengantin) {
+      const targetElement = document.getElementById(targetId || 'section-pengantin')
+      if (targetElement) {
         // Use custom smooth scroll with 1500ms duration
-        smoothScrollTo(sectionPengantin, 1500)
+        smoothScrollTo(targetElement, 1500)
       }
     }, 3500)
   }

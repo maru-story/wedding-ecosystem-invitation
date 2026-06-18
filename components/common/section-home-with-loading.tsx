@@ -1,23 +1,89 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 'use client'
 
+import IconSvg from '@/components/assets/images/card-open-wedding/icon.svg'
 import BgSectionBottomCroppedTop from '@/components/assets/images/section-awal/bg-section-1-cropped-top.png'
 import BgSectionHome from '@/components/assets/images/section-awal/bg-section-1-cropped.png'
-import BgSectionBottomCropped from '@/components/assets/images/section-awal/bg-section-bottom-cropped.png'
-import Key from '@/components/assets/images/section-awal/key.png'
+import BgSectionBottomCropped from '@/components/assets/images/section-awal/bg-section-bottom-cropped.svg'
 import CardOpenWedding from '@/components/common/card-open-wedding'
 import { useInvitation } from '@/components/context/provider'
+import { EventData, SectionData } from '@/lib/api'
 import { motion, Variants } from 'framer-motion'
 import Image from 'next/image'
 import React, { useEffect } from 'react'
 
-export default function SectionHome({ name }: { name: string }) {
+const SECTION_DOM_IDS: Record<string, string> = {
+  bride_groom: 'section-pengantin',
+  bride: 'section-bride',
+  groom: 'section-groom',
+  story: 'section-story',
+  verse: 'section-doa',
+  countdown: 'section-countdown',
+  akad_resepsi: 'section-akad',
+  rsvp: 'section-konfirmasi',
+  attire: 'section-attire',
+  gallery: 'section-photo',
+  video: 'section-video',
+  gift: 'section-gift',
+  messages: 'section-pesan',
+  closing: 'section-penutup',
+}
+
+export default function SectionHome({
+  name,
+  event,
+  sections: initialSections,
+}: {
+  name: string
+  event: EventData
+  sections: SectionData[]
+}) {
   const { loading, setLoading, progress, setProgress, isInvitationOpen } =
     useInvitation()
+
+  const [sections, setSections] = React.useState<SectionData[]>(initialSections)
+
+  const coverSection = sections.find((s) => s.section_type === 'cover')
+  const coverContent = coverSection?.content as {
+    title?: string
+    subtitle?: string
+    opening_text?: string
+  } | undefined
+
+  const activeSections = sections
+    .filter((s) => s.is_active && s.section_type !== 'music')
+    .sort((a, b) => a.sort_order - b.sort_order)
+
+  const firstActiveAfterCover = activeSections.find((s) => s.section_type !== 'cover')
+  const targetId = firstActiveAfterCover ? SECTION_DOM_IDS[firstActiveAfterCover.section_type] : undefined
+
+  // Listen for live preview updates from the dashboard editor
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'CMS_PREVIEW_UPDATE') {
+        const { section_type, content } = e.data;
+        setSections((prev) =>
+          prev.map((s) =>
+            s.section_type === section_type ? { ...s, content } : s
+          )
+        );
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
 
   const refLoading = React.useRef<boolean>(false)
   // Simulate loading progress
   useEffect(() => {
+    const isPreviewMode = window.location.search.includes('to=preview') || window.location.search.includes('preview=true');
+    if (isPreviewMode) {
+      setLoading(false);
+      setProgress(100);
+      return;
+    }
+
     const IS_VISITED = localStorage.getItem('IS_VISITED') ?? null
     if (!IS_VISITED) {
       if (refLoading.current) return
@@ -75,15 +141,15 @@ export default function SectionHome({ name }: { name: string }) {
       >
         <div className="w-[80%]">
           <h1
-            className={`mb-6 text-center font-[minecraft] text-xl ${progress < 50 ? 'text-[#322a23]' : 'text-white'} transition-all duration-300 ease-in`}
+            className={`mb-6 text-center font-minecraft text-xl ${progress < 50 ? 'text-[#603C24]' : 'text-white'} transition-all duration-300 ease-in`}
           >
-            Tunggu Sebentar Yaa...
+            Please Wait...
           </h1>
 
           {/* Minecraft-style dirt loading bar background */}
           <div className="relative h-8 w-full overflow-hidden rounded border-2 border-black bg-[#322a23]">
             <motion.div
-              className="absolute top-0 left-0 flex h-full items-center justify-center bg-[#8b3438]"
+              className="absolute top-0 left-0 flex h-full items-center justify-center bg-[#275E78]"
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.2 }}
@@ -94,19 +160,19 @@ export default function SectionHome({ name }: { name: string }) {
 
           {/* Loading text */}
           <div
-            className={`mt-4 text-center font-[minecraft] text-xs ${progress < 50 ? 'text-[#322a23]' : 'text-white'} transition-all duration-300 ease-in`}
+            className={`mt-4 text-center font-minecraft text-xs ${progress < 50 ? 'text-[#603C24]' : 'text-white'} transition-all duration-300 ease-in`}
           >
             <motion.p
               animate={{ opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 1.5, repeat: Infinity }}
             >
               {progress < 33
-                ? 'Lagi memuat...'
+                ? 'Loading...'
                 : progress < 66
-                  ? 'Sudah setengah jalan...'
+                  ? 'Halfway there...'
                   : progress < 100
-                    ? 'Dikit lagi...'
-                    : 'Selamat datang!'}
+                    ? 'Almost there...'
+                    : 'Welcome!'}
             </motion.p>
           </div>
         </div>
@@ -127,8 +193,6 @@ export default function SectionHome({ name }: { name: string }) {
           <Image
             src={BgSectionBottomCroppedTop}
             alt="section-awal-background-top"
-            width={0}
-            height={0}
             sizes="100vw"
             className="absolute top-[-10px] left-0 z-10 h-auto w-full"
             loading="lazy"
@@ -140,7 +204,7 @@ export default function SectionHome({ name }: { name: string }) {
           initial={{ opacity: 1 }}
           animate={{ opacity: isInvitationOpen ? 0 : 1 }}
           transition={{ duration: 0.5 }}
-          className="absolute top-5 z-10 h-[10px] w-full border-b-2 border-b-[#8b3438] bg-[#701f24]"
+          className="absolute top-5 z-10 h-[10px] w-full border-b-2 border-b-[#46607A] bg-[#314C64]"
         />
 
         {/* ITEM FOR TEXT WEDDING */}
@@ -148,11 +212,11 @@ export default function SectionHome({ name }: { name: string }) {
           initial={{ opacity: 1 }}
           animate={{ opacity: isInvitationOpen ? 0 : 1 }}
           transition={{ duration: 0.5 }}
-          className="absolute top-10 left-1/2 z-10 mb-2 flex w-[90%] -translate-x-1/2 justify-between gap-1 rounded-xs border-b-2 border-b-[#8b3438] bg-[#701f24] px-3 py-2"
+          className="absolute top-10 left-1/2 z-10 mb-2 flex w-[90%] -translate-x-1/2 justify-between gap-1 rounded-xs border-b-2 border-b-[#314C63] bg-[#314C63] px-3 py-2"
         >
           <div className="flex-2 overflow-hidden rounded-sm bg-[#322a23] px-4 py-2.5">
             <motion.p
-              className="text-center font-[minecraft] text-xs text-nowrap text-[#8a826c] uppercase"
+              className="text-center font-minecraft text-xs text-nowrap text-[#8a826c] uppercase"
               variants={textScrollVariants}
               animate="animate"
               whileInView={{ opacity: [1, 0, 1] }}
@@ -164,11 +228,11 @@ export default function SectionHome({ name }: { name: string }) {
                 },
               }}
             >
-              The Wedding Of Panji Gina
+              {coverContent?.title || `The Wedding Of ${event.bride_name} & ${event.groom_name}`}
             </motion.p>
           </div>
-          <div className="absolute left-[33%] h-3/4 w-2.5 bg-[#701f24]" />
-          <div className="absolute right-[33%] h-3/4 w-2.5 bg-[#701f24]" />
+          <div className="absolute left-[33%] h-3/4 w-2.5 bg-[#314C63]" />
+          <div className="absolute right-[33%] h-3/4 w-2.5 bg-[#314C63]" />
         </motion.div>
 
         {/* ITEM FOR PRINTING THE CARD */}
@@ -176,7 +240,7 @@ export default function SectionHome({ name }: { name: string }) {
           initial={{ opacity: 1 }}
           animate={{ opacity: isInvitationOpen ? 0 : 1 }}
           transition={{ duration: 0.5 }}
-          className="absolute top-26 left-1/2 z-10 w-[90%] -translate-x-1/2 rounded-tl-xs rounded-tr-xs bg-[#701f24] px-3 pt-2"
+          className="absolute top-26 left-1/2 z-10 w-[90%] -translate-x-1/2 rounded-tl-xs rounded-tr-xs bg-[#314C63] px-3 pt-2"
         >
           <div className="relative">
             <div className="h-[4px] w-full rounded-tl-sm rounded-tr-sm bg-[#322a23]" />
@@ -187,7 +251,7 @@ export default function SectionHome({ name }: { name: string }) {
           initial={{ opacity: 1 }}
           animate={{ opacity: isInvitationOpen ? 0 : 1 }}
           transition={{ duration: 0.5 }}
-          className="absolute top-29 left-1/2 z-8 w-[90%] -translate-x-1/2 rounded-br-xs rounded-bl-xs bg-[#701f24] px-3 pb-2"
+          className="absolute top-29 left-1/2 z-8 w-[90%] -translate-x-1/2 rounded-br-xs rounded-bl-xs bg-[#314C63] px-3 pb-2"
         >
           <div className="relative">
             <div className="h-[4px] w-full bg-[#322a23]" />
@@ -200,10 +264,8 @@ export default function SectionHome({ name }: { name: string }) {
           src={BgSectionHome}
           alt="background-section-1"
           sizes="100vw"
-          width={0}
-          height={0}
           loading="lazy"
-          className="h-[100dvh] w-full"
+          className="h-dvh w-full"
         />
 
         {/* KEY IMAGE with simple fade out */}
@@ -214,12 +276,12 @@ export default function SectionHome({ name }: { name: string }) {
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
         >
           <Image
-            src={Key}
-            alt="key"
-            width={160}
-            height={290}
+            src={IconSvg}
+            alt="icon"
+            width={100}
+            height={115}
             loading="lazy"
-            className="h-auto"
+            className="h-auto w-auto"
           />
         </motion.div>
 
@@ -228,8 +290,6 @@ export default function SectionHome({ name }: { name: string }) {
           src={BgSectionBottomCropped}
           alt="key"
           sizes="100vw"
-          width={0}
-          height={0}
           loading="lazy"
           className="absolute bottom-0 h-auto w-full"
         />
@@ -237,17 +297,24 @@ export default function SectionHome({ name }: { name: string }) {
 
       {/* Content card */}
       <motion.div
-        className={`absolute top-[-80%] ${loading ? 'opacity-0' : 'opacity-100'} z-8 w-full`}
-        initial={{ top: '-80%', scale: 0.85 }}
+        className={`absolute top-0 ${loading ? 'opacity-0' : 'opacity-100'} z-8 w-full`}
+        initial={{ y: '-80%', scale: 0.85 }}
         animate={
           loading
-            ? { scale: 0.85 }
+            ? { y: '-80%', scale: 0.85 }
             : isInvitationOpen
-              ? { top: 0, scale: 1, transition: { duration: 1 } }
-              : { top: 0, scale: 0.85, transition: { duration: 4, delay: 2 } }
+              ? { y: 0, scale: 1, transition: { duration: 1 } }
+              : { y: 0, scale: 0.85, transition: { duration: 4, delay: 2 } }
         }
       >
-        <CardOpenWedding name={name} loading={loading} />
+        <CardOpenWedding
+          name={name}
+          loading={loading}
+          event={event}
+          subtitle={coverContent?.subtitle}
+          buttonText={coverContent?.opening_text}
+          targetId={targetId}
+        />
       </motion.div>
     </section>
   )
