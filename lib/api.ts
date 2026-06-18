@@ -3,134 +3,150 @@
  * Used by the invitation app to load event config and guest data.
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 
 export interface InvitationThemeData {
-  primary_color: string;
-  secondary_color: string;
-  accent_color: string;
-  background_color: string;
-  text_color: string;
-  font_family: string;
-  font_heading: string;
-  template_id: string;
+  primary_color: string
+  secondary_color: string
+  accent_color: string
+  background_color: string
+  text_color: string
+  font_family: string
+  font_heading: string
+  template_id: string
 }
 
 export interface EventData {
-  id: string;
-  slug: string;
-  bride_name: string;
-  groom_name: string;
-  event_date: string;
-  venue_name: string;
-  venue_address: string;
-  venue_maps_url: string;
-  akad_start: string;
-  akad_end: string;
-  resepsi_start: string;
-  resepsi_end: string;
-  status: string;
-  share_title?: string | null;
-  share_description?: string | null;
-  share_image_url?: string | null;
+  id: string
+  slug: string
+  bride_name: string
+  groom_name: string
+  event_date: string
+  venue_name: string
+  venue_address: string
+  venue_maps_url: string
+  akad_start: string
+  akad_end: string
+  resepsi_start: string
+  resepsi_end: string
+  status: string
+  share_title?: string | null
+  share_description?: string | null
+  share_image_url?: string | null
 }
 
 export interface GuestData {
-  id: string;
-  name: string;
-  slug: string;
-  group: string;
-  plus_one_count: number;
-  qr_payload?: string | null;
-  rsvp?: RsvpResponse | null;
+  id: string
+  name: string
+  slug: string
+  group: string
+  plus_one_count: number
+  qr_payload?: string | null
+  rsvp?: RsvpResponse | null
 }
 
 export interface AdaptedGuest {
-  id: string;
-  nama: string;
-  nickname: string;
-  plus_one_count: number;
-  rsvp?: RsvpResponse | null;
+  id: string
+  nama: string
+  nickname: string
+  plus_one_count: number
+  rsvp?: RsvpResponse | null
 }
 
 export interface SectionData {
-  id: string;
-  event_id: string;
-  section_type: string;
-  sort_order: number;
-  is_active: boolean;
-  content: Record<string, unknown>;
+  id: string
+  event_id: string
+  section_type: string
+  sort_order: number
+  is_active: boolean
+  content: Record<string, unknown>
 }
 
 export interface InvitationPageData {
-  event: EventData;
-  guest: GuestData;
-  theme: InvitationThemeData;
-  sections: SectionData[];
+  event: EventData
+  guest: GuestData
+  theme: InvitationThemeData
+  sections: SectionData[]
 }
 
 /**
  * Fetch invitation data for a specific event and guest.
  * Returns null if event or guest is not found.
+ * Includes retry logic for transient network failures (cold starts, socket resets).
  */
 export async function fetchInvitationData(
   eventSlug: string,
   guestSlug: string
 ): Promise<InvitationPageData | null> {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/invitations/${encodeURIComponent(eventSlug)}/${encodeURIComponent(guestSlug)}`,
-      {
+  const url = `${API_BASE_URL}/invitations/${encodeURIComponent(eventSlug)}/${encodeURIComponent(guestSlug)}`
+  const maxRetries = 2
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, {
         next: { revalidate: 60 }, // ISR: revalidate every 60 seconds
+      })
+
+      if (!response.ok) {
+        return null
       }
-    );
 
-    if (!response.ok) {
-      return null;
+      const data = await response.json()
+      return data
+    } catch (error) {
+      // Retry on transient network errors (socket reset, connection refused)
+      if (attempt < maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)))
+        continue
+      }
+      console.error('fetchInvitationData failed after retries:', error)
+      return null
     }
-
-    const data = await response.json();
-    return data;
-  } catch {
-    return null;
   }
+
+  return null
 }
 
 /**
  * Fetch event data by slug (without guest personalization).
  * Used for generating static paths or previewing.
  */
-export async function fetchEventBySlug(eventSlug: string): Promise<EventData | null> {
+export async function fetchEventBySlug(
+  eventSlug: string
+): Promise<EventData | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/invitations/${encodeURIComponent(eventSlug)}`, {
-      next: { revalidate: 60 },
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/invitations/${encodeURIComponent(eventSlug)}`,
+      {
+        next: { revalidate: 60 },
+      }
+    )
 
     if (!response.ok) {
-      return null;
+      return null
     }
 
-    return await response.json();
+    return await response.json()
   } catch {
-    return null;
+    return null
   }
 }
 
 // --- RSVP API ---
 
 export interface RsvpPayload {
-  guest_id: string;
-  event_id: string;
-  attendance: 'akad' | 'resepsi' | 'both' | 'decline';
-  guest_count: number;
+  guest_id: string
+  event_id: string
+  attendance: 'akad' | 'resepsi' | 'both' | 'decline'
+  guest_count: number
 }
 
 export interface RsvpResponse {
-  id: string;
-  guest_id: string;
-  attendance: string;
-  guest_count: number;
-  submitted_at: string;
+  id: string
+  guest_id: string
+  attendance: string
+  guest_count: number
+  submitted_at: string
 }
 
 /**
@@ -142,40 +158,40 @@ export async function submitRsvp(payload: RsvpPayload): Promise<RsvpResponse> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
-  });
+  })
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Gagal mengirim RSVP' }));
-    throw new Error(error.message || 'Gagal mengirim RSVP');
+    const error = await response
+      .json()
+      .catch(() => ({ message: 'Gagal mengirim RSVP' }))
+    throw new Error(error.message || 'Gagal mengirim RSVP')
   }
 
-  return response.json();
+  return response.json()
 }
-
-
 
 // --- Messages API ---
 
 export interface MessageData {
-  id: string;
-  sender_name: string;
-  message_text: string;
-  created_at: string;
+  id: string
+  sender_name: string
+  message_text: string
+  created_at: string
 }
 
 export interface MessagesResponse {
-  messages: MessageData[];
-  total: number;
-  page: number;
-  limit: number;
-  total_pages: number;
+  messages: MessageData[]
+  total: number
+  page: number
+  limit: number
+  total_pages: number
 }
 
 export interface SubmitMessagePayload {
-  event_id: string;
-  guest_id?: string;
-  sender_name: string;
-  message_text: string;
+  event_id: string
+  guest_id?: string
+  sender_name: string
+  message_text: string
 }
 
 /**
@@ -190,36 +206,40 @@ export async function fetchMessages(
   const response = await fetch(
     `${API_BASE_URL}/messages/${encodeURIComponent(eventId)}?page=${page}&per_page=${limit}`,
     { cache: 'no-store' }
-  );
+  )
 
   if (!response.ok) {
-    throw new Error('Gagal memuat ucapan');
+    throw new Error('Gagal memuat ucapan')
   }
 
-  const result = await response.json();
+  const result = await response.json()
   return {
     messages: result.data || [],
     total: result.pagination?.total || 0,
     page: result.pagination?.page || page,
     limit: result.pagination?.per_page || limit,
     total_pages: result.pagination?.total_pages || 1,
-  };
+  }
 }
 
 /**
  * Submit a new message/wish for an event.
  */
-export async function submitMessage(payload: SubmitMessagePayload): Promise<MessageData> {
+export async function submitMessage(
+  payload: SubmitMessagePayload
+): Promise<MessageData> {
   const response = await fetch(`${API_BASE_URL}/messages`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
-  });
+  })
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Gagal mengirim ucapan' }));
-    throw new Error(error.message || 'Gagal mengirim ucapan');
+    const error = await response
+      .json()
+      .catch(() => ({ message: 'Gagal mengirim ucapan' }))
+    throw new Error(error.message || 'Gagal mengirim ucapan')
   }
 
-  return response.json();
+  return response.json()
 }
