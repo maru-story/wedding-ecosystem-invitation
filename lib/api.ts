@@ -84,7 +84,7 @@ export async function fetchInvitationData(
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const response = await fetch(url, {
-        next: { revalidate: 60 }, // ISR: revalidate every 60 seconds
+        next: { revalidate: 10 }, // ISR: revalidate every 10 seconds
       })
 
       if (!response.ok) {
@@ -118,7 +118,7 @@ export async function fetchEventBySlug(
     const response = await fetch(
       `${API_BASE_URL}/invitations/${encodeURIComponent(eventSlug)}`,
       {
-        next: { revalidate: 60 },
+        next: { revalidate: 10 },
       }
     )
 
