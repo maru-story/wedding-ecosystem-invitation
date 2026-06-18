@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 
 // Countdown component
-const Countdown: React.FC = () => {
+const Countdown: React.FC<{ targetDate: string }> = ({ targetDate }) => {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -13,8 +13,7 @@ const Countdown: React.FC = () => {
 
   useEffect(() => {
     const calculateTimeLeft = () => {
-      // June 8, 2025, 11:00 AM WIB (UTC+7)
-      const weddingDate = new Date('2025-06-08T11:00:00+07:00').getTime()
+      const weddingDate = new Date(targetDate).getTime()
       const now = new Date().getTime()
       const difference = weddingDate - now
 
@@ -39,7 +38,7 @@ const Countdown: React.FC = () => {
 
     // Clean up interval on unmount
     return () => clearInterval(timer)
-  }, [setTimeLeft])
+  }, [targetDate, setTimeLeft])
 
   return (
     <>
@@ -59,11 +58,11 @@ const CountdownUnit: React.FC<{ value: number; label: string }> = ({
   return (
     <div className="col-span-6 flex flex-col items-center">
       <div className="min-w-[50px] text-center">
-        <span className="font-[milk-honey] text-3xl font-semibold text-[#A87C86]">
+        <span className="font-milk-honey text-4xl sm:text-5xl font-semibold text-[#A87C86]">
           {value.toString().padStart(2, '0')}
         </span>
       </div>
-      <span className="font-[milk-honey] text-xs text-[#896B58]">{label}</span>
+      <span className="font-milk-honey text-sm text-[#896B58]">{label}</span>
     </div>
   )
 }

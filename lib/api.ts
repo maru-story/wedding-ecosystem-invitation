@@ -42,12 +42,15 @@ export interface GuestData {
   group: string;
   plus_one_count: number;
   qr_payload?: string | null;
+  rsvp?: RsvpResponse | null;
 }
 
 export interface AdaptedGuest {
   id: string;
   nama: string;
   nickname: string;
+  plus_one_count: number;
+  rsvp?: RsvpResponse | null;
 }
 
 export interface SectionData {

@@ -1,215 +1,242 @@
 'use client'
 
-import BgFrame2 from '@/components/assets/images/section-pengantin/bg-frame-2.png'
-import BgFrame from '@/components/assets/images/section-pengantin/bg-frame.svg'
-import Flower1 from '@/components/assets/images/section-pengantin/flower-1.svg'
-import Flower2 from '@/components/assets/images/section-pengantin/flower-2.svg'
-import Flower3 from '@/components/assets/images/section-pengantin/flower-3.svg'
-import Flower4 from '@/components/assets/images/section-pengantin/flower-4.svg'
-import FramePengantin2 from '@/components/assets/images/section-pengantin/frame-pengantin-2.png'
-import FramePengantin from '@/components/assets/images/section-pengantin/frame-pengantin.svg'
-import JudulPengantin from '@/components/assets/images/section-pengantin/title-pengantin.svg'
+import BgSection from '@/components/assets/images/section-pengantin/bg-bride-groom-section.svg'
+import FlowerBottomLeft from '@/components/assets/images/section-pengantin/flower-bride-groom-bottom-left.svg'
+import FlowerTopRight from '@/components/assets/images/section-pengantin/flower-bride-groom-top-right.svg'
+import FrameBrideGroom from '@/components/assets/images/section-pengantin/frame-bride-groom.svg'
+import OrnamentBottomRight from '@/components/assets/images/section-pengantin/ornament-bride-groom-bottom-right.svg'
+import OrnamentTopLeft from '@/components/assets/images/section-pengantin/ornament-bride-groom-top-left.svg'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import { SectionData } from '@/lib/api'
 
-const SectionPengantin: React.FC = () => {
+interface SectionPengantinProps {
+  brideName?: string
+  groomName?: string
+  section?: SectionData
+}
+
+const SectionPengantin: React.FC<SectionPengantinProps> = ({
+  brideName = 'Gina',
+  groomName = 'Panji',
+  section,
+}) => {
+  const [isInView, setIsInView] = useState(false)
+
+  const content = section?.content as {
+    bride_name?: string
+    groom_name?: string
+    background_image?: string
+  } | undefined
+
+  const [liveContent, setLiveContent] = useState(content)
+
+  useEffect(() => {
+    setLiveContent(content)
+  }, [content])
+
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'CMS_PREVIEW_UPDATE' && e.data?.section_type === 'bride_groom') {
+        setLiveContent(e.data.content)
+      }
+    }
+
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [])
+
+  const finalBrideName = liveContent?.bride_name || brideName
+  const finalGroomName = liveContent?.groom_name || groomName
+  const bgImage = liveContent?.background_image || BgSection
+
   return (
-    <section className="relative w-full overflow-hidden" id="section-pengantin">
+    <motion.section
+      className="relative w-full overflow-hidden"
+      id="section-pengantin"
+      onViewportEnter={() => setIsInView(true)}
+      viewport={{ once: true, amount: 0.15 }}
+    >
       {/* Container that establishes size */}
-      <div className="relative aspect-[9/16] w-full">
+      <div className="relative aspect-9/16 w-full">
         {/* Background elements */}
-        <div className="absolute h-auto w-full">
+        <div className="absolute inset-0">
           <Image
-            src={BgFrame}
-            alt="section-pengantin-background-frame"
-            width={0}
-            height={0}
-            sizes="100vw"
-            className="h-auto w-full"
+            src={bgImage}
+            alt="section-pengantin-background"
+            fill
+            className="object-cover"
             loading="lazy"
           />
         </div>
 
-        <div className="absolute h-auto w-full">
+        {/* Center Card Frame Container (Vertically & Horizontally Centered) */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-[95%] aspect-490/639 max-w-[380px]">
+          {/* Frame Card Background */}
           <Image
-            src={BgFrame2}
-            alt="section-pengantin-background-frame-2"
-            width={0}
-            height={0}
-            sizes="100vw"
-            loading="lazy"
-            className="h-auto w-full"
-          />
-        </div>
-        <div className="absolute z-10 h-auto w-full">
-          <Image
-            src={FramePengantin}
-            alt="section-pengantin-frame"
-            width={0}
-            height={0}
-            loading="lazy"
-            sizes="100vw"
-            className="h-auto w-full"
-          />
-        </div>
-        <div className="absolute top-[44%] left-1/2 z-10 h-auto w-[85%] -translate-x-1/2 -translate-y-1/2">
-          <Image
-            src={FramePengantin2}
-            alt="section-pengantin-frame-2"
-            width={0}
-            height={0}
-            loading="lazy"
-            sizes="100vw"
-            className="h-auto w-full"
-          />
-        </div>
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: false, amount: 0.5 }}
-          transition={{ duration: 0.8, ease: 'easeOut', delay: 0.8 }}
-          className="absolute top-[65px] left-[45px] z-11 h-auto w-1/2"
-        >
-          <Image
-            src={JudulPengantin}
-            alt="section-pengantin-judul"
-            width={0}
-            height={0}
-            loading="lazy"
-            sizes="100vw"
-            className="h-auto w-full"
-          />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, rotateY: 180 }}
-          whileInView={{
-            opacity: 1,
-            rotateY: 0,
-          }}
-          viewport={{ once: false, amount: 0.5 }}
-          transition={{ duration: 0.8, ease: 'easeOut', delay: 0.5 }}
-          className="absolute right-0 bottom-40 z-11 h-auto max-[375px]:w-[100px]"
-        >
-          <Image
-            src={Flower1}
-            alt="section-pengantin-flower-1"
-            width={0}
-            height={0}
+            src={FrameBrideGroom}
+            alt="frame-bride-groom"
+            fill
+            className="object-contain pointer-events-none z-10"
             loading="lazy"
           />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, rotateY: 180 }}
-          whileInView={{
-            opacity: 1,
-            rotateY: 0,
-          }}
-          viewport={{ once: false, amount: 0.5 }}
-          transition={{ duration: 0.8, ease: 'easeOut', delay: 0.8 }}
-          className="absolute right-10 bottom-30 z-11 h-auto"
-        >
-          <Image
-            src={Flower2}
-            alt="section-pengantin-flower-2"
-            width={0}
-            height={0}
-            loading="lazy"
-          />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, rotateY: 180 }}
-          whileInView={{
-            opacity: 1,
-            rotateY: 0,
-          }}
-          viewport={{ once: false, amount: 0.5 }}
-          transition={{ duration: 0.8, ease: 'easeOut', delay: 0.8 }}
-          className="absolute bottom-30 left-10 z-11 h-auto "
-        >
-          <Image
-            src={Flower3}
-            alt="section-pengantin-flower-3"
-            width={0}
-            height={0}
-            loading="lazy"
-          />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, rotateY: 180 }}
-          whileInView={{
-            opacity: 1,
-            rotateY: 0,
-          }}
-          viewport={{ once: false, amount: 0.5 }}
-          transition={{ duration: 0.8, ease: 'easeOut', delay: 0.8 }}
-          className="absolute bottom-40 left-0 z-11 h-auto max-[375px]:w-[80px]"
-        >
-          <Image
-            src={Flower4}
-            alt="section-pengantin-flower-4"
-            width={0}
-            height={0}
-            loading="lazy"
-          />
-        </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: false, amount: 0.5 }}
-          transition={{ duration: 0.4, ease: 'easeOut', delay: 0.8 }}
-          className="absolute bottom-10 z-11 h-auto w-full"
-        >
-          <Image
-            src={`${process.env.NEXT_PUBLIC_URL_IMAGE}section-ilustrasi-nama.svg`}
-            alt="section-pengantin-nama"
-            width={0}
-            height={0}
-            loading="lazy"
-            sizes="100vw"
-            className="h-auto w-full"
-          />
-        </motion.div>
+          {/* Corner Ornaments (Sway loop triggered when scrolled into view) */}
+          {/* Top-Left Ornament (Scaled up by ~30%) */}
+          <motion.div
+            className="absolute top-[10%] left-[10%] z-20 pointer-events-none origin-top-left"
+            style={{ width: '26%', transformStyle: 'preserve-3d' }}
+            initial={{ opacity: 0, scale: 0.5, rotate: -45, x: -20, y: -20 }}
+            animate={isInView ? {
+              opacity: 1,
+              scale: 1,
+              rotate: [0, 2, -2, 0],
+              x: [0, 2, -2, 0],
+              y: [0, -3, 3, 0],
+            } : {
+              opacity: 0,
+              scale: 0.5,
+              rotate: -45,
+              x: -20,
+              y: -20
+            }}
+            transition={{
+              opacity: { duration: 0.8, delay: 0.2 },
+              scale: { type: 'spring', damping: 15, stiffness: 60, delay: 0.2 },
+              x: { repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 1.2 },
+              y: { repeat: Infinity, duration: 5, ease: 'easeInOut', delay: 1.2 },
+              rotate: { repeat: Infinity, duration: 7, ease: 'easeInOut', delay: 1.2 },
+            }}
+          >
+            <Image
+              src={OrnamentTopLeft}
+              alt="ornament-top-left"
+              className="w-full h-auto"
+              loading="lazy"
+            />
+          </motion.div>
 
-        {/* Animated elements */}
-        <motion.div
-          initial={{ x: 100, opacity: 0 }}
-          whileInView={{ x: 0, opacity: 1 }}
-          viewport={{ once: false, amount: 0.5 }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-          className="absolute right-[7%] bottom-[22%] z-[2] h-auto w-[55%]"
-        >
-          <Image
-            src={`${process.env.NEXT_PUBLIC_URL_IMAGE}section-ilustrasi-gina.svg`}
-            alt="gambar-gina"
-            width={0}
-            height={0}
-            loading="lazy"
-            sizes="100vw"
-            className="h-auto w-full"
-          />
-        </motion.div>
+          {/* Top-Right Flower (Scaled up by ~30%) */}
+          <motion.div
+            className="absolute top-[-12%] right-[-12%] z-20 pointer-events-none origin-top-right"
+            style={{ width: '38%', transformStyle: 'preserve-3d' }}
+            initial={{ opacity: 0, scale: 0.5, rotate: 45, x: 20, y: -20 }}
+            animate={isInView ? {
+              opacity: 1,
+              scale: 1,
+              rotate: [0, -2, 2, 0],
+              x: [0, -2, 2, 0],
+              y: [0, -3, 3, 0],
+            } : {
+              opacity: 0,
+              scale: 0.5,
+              rotate: 45,
+              x: 20,
+              y: -20
+            }}
+            transition={{
+              opacity: { duration: 0.8, delay: 0.3 },
+              scale: { type: 'spring', damping: 15, stiffness: 60, delay: 0.3 },
+              x: { repeat: Infinity, duration: 7, ease: 'easeInOut', delay: 1.3 },
+              y: { repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 1.3 },
+              rotate: { repeat: Infinity, duration: 5, ease: 'easeInOut', delay: 1.3 },
+            }}
+          >
+            <Image
+              src={FlowerTopRight}
+              alt="flower-top-right"
+              className="w-full h-auto"
+              loading="lazy"
+            />
+          </motion.div>
 
-        <motion.div
-          initial={{ x: -100, opacity: 0 }}
-          whileInView={{ x: 0, opacity: 1 }}
-          viewport={{ once: false, amount: 0.5 }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-          className="absolute bottom-[30%] left-[12%] z-[1] h-auto w-[55%]"
-        >
-          <Image
-            src={`${process.env.NEXT_PUBLIC_URL_IMAGE}section-ilustrasi-panji.svg`}
-            alt="gambar-panji"
-            width={0}
-            loading="lazy"
-            height={0}
-            sizes="100vw"
-            className="h-auto w-full"
-          />
-        </motion.div>
+          {/* Bottom-Left Flower (Scaled up by ~30%) */}
+          <motion.div
+            className="absolute bottom-[-15%] left-[-15%] z-20 pointer-events-none origin-bottom-left"
+            style={{ width: '50%', transformStyle: 'preserve-3d' }}
+            initial={{ opacity: 0, scale: 0.5, rotate: -45, x: -20, y: 20 }}
+            animate={isInView ? {
+              opacity: 1,
+              scale: 1,
+              rotate: [0, 2, -2, 0],
+              x: [0, 2, -2, 0],
+              y: [0, 3, -3, 0],
+            } : {
+              opacity: 0,
+              scale: 0.5,
+              rotate: -45,
+              x: -20,
+              y: 20
+            }}
+            transition={{
+              opacity: { duration: 0.8, delay: 0.4 },
+              scale: { type: 'spring', damping: 15, stiffness: 60, delay: 0.4 },
+              x: { repeat: Infinity, duration: 5, ease: 'easeInOut', delay: 1.4 },
+              y: { repeat: Infinity, duration: 7, ease: 'easeInOut', delay: 1.4 },
+              rotate: { repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 1.4 },
+            }}
+          >
+            <Image
+              src={FlowerBottomLeft}
+              alt="flower-bottom-left"
+              className="w-full h-auto"
+              loading="lazy"
+            />
+          </motion.div>
+
+          {/* Bottom-Right Ornament (Scaled up by ~30%) */}
+          <motion.div
+            className="absolute bottom-[10%] right-[10%] z-20 pointer-events-none origin-bottom-right"
+            style={{ width: '22%', transformStyle: 'preserve-3d' }}
+            initial={{ opacity: 0, scale: 0.5, rotate: 45, x: 20, y: 20 }}
+            animate={isInView ? {
+              opacity: 1,
+              scale: 1,
+              rotate: [0, -2, 2, 0],
+              x: [0, -2, 2, 0],
+              y: [0, 3, -3, 0],
+            } : {
+              opacity: 0,
+              scale: 0.5,
+              rotate: 45,
+              x: 20,
+              y: 20
+            }}
+            transition={{
+              opacity: { duration: 0.8, delay: 0.5 },
+              scale: { type: 'spring', damping: 15, stiffness: 60, delay: 0.5 },
+              x: { repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 1.5 },
+              y: { repeat: Infinity, duration: 5, ease: 'easeInOut', delay: 1.5 },
+              rotate: { repeat: Infinity, duration: 7, ease: 'easeInOut', delay: 1.5 },
+            }}
+          >
+            <Image
+              src={OrnamentBottomRight}
+              alt="ornament-bottom-right"
+              className="w-full h-auto"
+              loading="lazy"
+            />
+          </motion.div>
+        </div>
       </div>
-    </section>
+
+      {/* Dynamic Styled Name Badge (always absolute bottom of the section) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+        transition={{ duration: 0.6, ease: 'easeOut', delay: 0.8 }}
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center pointer-events-none w-max"
+      >
+        <div className="bg-[#D08E61] border-[5px] border-[#C47C9E] rounded-full px-8 py-3 shadow-md flex items-center justify-center">
+          <span
+            className="text-[#604534] text-xl sm:text-2xl whitespace-nowrap tracking-wide leading-none select-none font-doodle-head"
+          >
+            {finalGroomName} & {finalBrideName}
+          </span>
+        </div>
+      </motion.div>
+    </motion.section>
   )
 }
 
