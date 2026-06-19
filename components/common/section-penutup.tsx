@@ -39,6 +39,7 @@ const SectionPenutup: React.FC<SectionPenutupProps> = ({ section }) => {
 
   const photoUrl = liveContent?.photo_url || ''
 
+
   return (
     <section className="relative w-full overflow-hidden" id="section-penutup">
       {/* Container that establishes size */}
@@ -58,7 +59,7 @@ const SectionPenutup: React.FC<SectionPenutupProps> = ({ section }) => {
               width={880}
               height={1238}
               sizes="100vw"
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain"
               loading="lazy"
             />
           ) : (
@@ -66,7 +67,7 @@ const SectionPenutup: React.FC<SectionPenutupProps> = ({ section }) => {
               src={FotoPenutup}
               alt="closing photo"
               sizes="100vw"
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain"
               loading="lazy"
             />
           )}
