@@ -216,7 +216,7 @@ const CardOpenWedding: React.FC<{
             />
             <h1
               className="font-little-hands leading-none text-[#603C24] font-normal"
-              style={{ fontSize: 'clamp(32px, 10vw, 72px)' }}
+              style={{ fontSize: 'clamp(32px, 15vw, 72px)' }}
             >
               {subtitle || `${event.bride_name.toLowerCase()} & ${event.groom_name.toLowerCase()}`}
             </h1>
