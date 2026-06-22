@@ -14,7 +14,7 @@ import {
 import { SectionData } from '@/lib/api'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 interface SectionPhotoProps {
   section?: SectionData
@@ -61,6 +61,136 @@ const SectionPhoto: React.FC<SectionPhotoProps> = ({ section }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const thumbContainerRef = useRef<HTMLDivElement>(null)
 
+  const [scrollProgress, setScrollProgress] = useState(0)
+  const [isScrollable, setIsScrollable] = useState(false)
+  const [thumbWidthPercent, setThumbWidthPercent] = useState(30)
+  const [isDragging, setIsDragging] = useState(false)
+
+  const handleScroll = useCallback(() => {
+    if (thumbContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = thumbContainerRef.current
+      const maxScroll = scrollWidth - clientWidth
+      if (maxScroll > 0) {
+        setScrollProgress(scrollLeft / maxScroll)
+        setIsScrollable(true)
+        const visibleRatio = clientWidth / scrollWidth
+        setThumbWidthPercent(Math.max(15, Math.min(50, visibleRatio * 100)))
+      } else {
+        setScrollProgress(0)
+        setIsScrollable(false)
+      }
+    }
+  }, [])
+
+  // Listen to scroll events on the thumbnail container
+  useEffect(() => {
+    const container = thumbContainerRef.current
+    if (!container) return
+
+    handleScroll()
+
+    container.addEventListener('scroll', handleScroll)
+    window.addEventListener('resize', handleScroll)
+
+    const resizeObserver = new ResizeObserver(handleScroll)
+    resizeObserver.observe(container)
+    if (container.firstElementChild) {
+      resizeObserver.observe(container.firstElementChild)
+    }
+
+    return () => {
+      container.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleScroll)
+      resizeObserver.disconnect()
+    }
+  }, [photos, handleScroll])
+  const trackRef = useRef<HTMLDivElement>(null)
+  const dragStartRef = useRef<{ startX: number; startScrollLeft: number } | null>(null)
+
+  const handlePointerMove = useCallback((e: PointerEvent) => {
+    if (!dragStartRef.current || !thumbContainerRef.current || !trackRef.current) return
+    
+    const deltaX = e.clientX - dragStartRef.current.startX
+    const trackWidth = trackRef.current.clientWidth
+    const thumbWidthPx = (thumbWidthPercent / 100) * trackWidth
+    const maxLeft = trackWidth - thumbWidthPx
+    
+    const container = thumbContainerRef.current
+    const maxScroll = container.scrollWidth - container.clientWidth
+    
+    if (maxLeft > 0 && maxScroll > 0) {
+      const dragRatio = deltaX / maxLeft
+      const scrollDelta = dragRatio * maxScroll
+      container.scrollLeft = dragStartRef.current.startScrollLeft + scrollDelta
+    }
+  }, [thumbWidthPercent])
+
+  const handlePointerUp = useCallback((e: PointerEvent) => {
+    setIsDragging(false)
+    dragStartRef.current = null
+    const target = e.target as HTMLElement
+    if (target) {
+      try {
+        target.releasePointerCapture(e.pointerId)
+      } catch (err) {
+        console.error(err)
+      }
+      target.removeEventListener('pointermove', handlePointerMove)
+      target.removeEventListener('pointerup', handlePointerUp)
+    }
+  }, [handlePointerMove])
+
+  const startDrag = useCallback((e: React.PointerEvent) => {
+    if (thumbContainerRef.current && trackRef.current) {
+      setIsDragging(true)
+      dragStartRef.current = {
+        startX: e.clientX,
+        startScrollLeft: thumbContainerRef.current.scrollLeft,
+      }
+      
+      const target = e.target as HTMLElement
+      if (target) {
+        try {
+          target.setPointerCapture(e.pointerId)
+        } catch (err) {
+          console.error(err)
+        }
+        target.addEventListener('pointermove', handlePointerMove)
+        target.addEventListener('pointerup', handlePointerUp)
+      }
+    }
+  }, [handlePointerMove, handlePointerUp])
+
+  const handleTrackPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return
+    e.preventDefault()
+
+    if (trackRef.current && thumbContainerRef.current) {
+      const rect = trackRef.current.getBoundingClientRect()
+      const clickX = e.clientX - rect.left
+      const trackWidth = rect.width
+      
+      const thumbWidthPx = (thumbWidthPercent / 100) * trackWidth
+      const targetLeft = clickX - thumbWidthPx / 2
+      const maxLeft = trackWidth - thumbWidthPx
+      
+      if (maxLeft > 0) {
+        const ratio = Math.max(0, Math.min(1, targetLeft / maxLeft))
+        const container = thumbContainerRef.current
+        const maxScroll = container.scrollWidth - container.clientWidth
+        
+        container.scrollLeft = ratio * maxScroll
+        startDrag(e)
+      }
+    }
+  }, [thumbWidthPercent, startDrag])
+
+  const handleThumbPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return
+    e.stopPropagation()
+    e.preventDefault()
+    startDrag(e)
+  }, [startDrag])
   // Sync main carousel with selected image
   useEffect(() => {
     if (mainApi && selectedImageIndex !== undefined) {
@@ -299,7 +429,7 @@ const SectionPhoto: React.FC<SectionPhotoProps> = ({ section }) => {
             <div className="w-full px-6">
               <div
                 ref={thumbContainerRef}
-                className="scrollbar-custom flex overflow-x-auto pb-3 scroll-smooth select-none"
+                className="no-scrollbar flex overflow-x-auto pb-3 select-none"
               >
                 <div className="flex w-max shrink-0 bg-white rounded-lg border-10 border-white max-[400px]:border-[6px] shadow-sm gap-3">
                   {photos.map((photo, index) => {
@@ -329,6 +459,37 @@ const SectionPhoto: React.FC<SectionPhotoProps> = ({ section }) => {
                   })}
                 </div>
               </div>
+
+              {/* Custom Interactive Scrollbar */}
+              {isScrollable && (
+                <div className="mt-2.5 px-1 flex justify-center">
+                  <div
+                    ref={trackRef}
+                    onPointerDown={handleTrackPointerDown}
+                    className="relative h-2 w-full rounded-full bg-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] border border-neutral-200/50 cursor-pointer touch-none"
+                  >
+                    <motion.div
+                      onPointerDown={handleThumbPointerDown}
+                      className="absolute top-0 bottom-0 rounded-full bg-neutral-300 hover:bg-neutral-400 active:bg-neutral-500 cursor-grab active:cursor-grabbing border border-white/50 shadow-sm touch-none"
+                      style={{
+                        width: `${thumbWidthPercent}%`,
+                      }}
+                      animate={{
+                        left: `${scrollProgress * (100 - thumbWidthPercent)}%`,
+                      }}
+                      transition={isDragging ? {
+                        type: 'tween',
+                        duration: 0
+                      } : {
+                        type: 'spring',
+                        stiffness: 300,
+                        damping: 30,
+                        mass: 0.2,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

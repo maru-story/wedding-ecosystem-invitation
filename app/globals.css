@@ -120,23 +120,41 @@
   background-color: #ddd3c8;
 }
 
-/* Custom scrollbar styles for the message container */
+/* Custom scrollbar styles for containers */
 .scrollbar-custom::-webkit-scrollbar {
   width: 8px;
-  height: 6px;
+  height: 8px;
 }
 
 .scrollbar-custom::-webkit-scrollbar-track {
-  background: transparent;
+  background: #f5ede2;
   border-radius: 9999px;
 }
 
 .scrollbar-custom::-webkit-scrollbar-thumb {
-  background-color: #e8ded5;
+  background-color: #cf935f;
   border-radius: 9999px;
-  border: 2px solid white;
+  border: 2px solid #f5ede2;
 }
 
 .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(207, 147, 95, 0.5);
+  background-color: #b57a47;
 }
+
+/* Fallback for standard CSS scrollbar styling (supported in modern Safari 18.2+, Chrome, Firefox) */
+.scrollbar-custom {
+  scrollbar-width: thin;
+  scrollbar-color: #cf935f #f5ede2;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
