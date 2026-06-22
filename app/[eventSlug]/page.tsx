@@ -139,7 +139,7 @@ const Page: FC<PageProps> = async ({ params, searchParams }) => {
   const renderSection = (sectionType: string) => {
     switch (sectionType) {
       case 'cover':
-        return <SectionHome key="cover" name={guest.name} event={event} sections={sections} />;
+        return <SectionHome key="cover" name={guest.name} event={event} sections={sections} qrPayload={guest.qr_payload} />;
       case 'bride_groom':
         return (
           <React.Fragment key="bride_groom">
@@ -187,7 +187,7 @@ const Page: FC<PageProps> = async ({ params, searchParams }) => {
     return (
       <main className="container min-h-dvh overflow-x-hidden">
         {focus === 'cover' && (
-          <SectionHome name={guest.name} event={event} sections={sections} />
+          <SectionHome name={guest.name} event={event} sections={sections} qrPayload={guest.qr_payload} />
         )}
         {focus === 'bride_groom' && (
           <SectionPengantin brideName={event.bride_name} groomName={event.groom_name} section={brideGroomSection} />

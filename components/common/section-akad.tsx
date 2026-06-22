@@ -4,6 +4,7 @@ import IconSvg from '@/components/assets/images/card-open-wedding/icon.svg'
 import BgFrame from '@/components/assets/images/section-akad/bg-akad-section.svg'
 import CatAkadBottomRight from '@/components/assets/images/section-akad/cat-akad-bottom-right.svg'
 import CatAkadTopLeft from '@/components/assets/images/section-akad/cat-akad-top-left.svg'
+import DresscodeSvg from '@/components/assets/images/section-akad/dresscode-akad-section.svg'
 import FlowerAkadBottomLeft from '@/components/assets/images/section-akad/flower-akad-bottom-left.svg'
 import FlowerAkadBottomRight from '@/components/assets/images/section-akad/flower-akad-bottom-right.svg'
 import FlowerAkadTopLeft from '@/components/assets/images/section-akad/flower-akad-top-left.svg'
@@ -78,7 +79,7 @@ const SectionAkad: React.FC<SectionAkadProps> = ({ event, section }) => {
   const resepsiEnd = liveContent?.resepsi?.time_end || event.resepsi_end
   const venueName = liveContent?.venue || event.venue_name || 'GEDUNG BADARUSAMSI DITKUAD'
   const venueAddress = liveContent?.venue_address || event.venue_address || 'Jl. Menado No 8, Merdeka, Kec. Sumur Bandung, Kota Bandung, Jawa Barat 40113'
-  const mapsUrl = liveContent?.maps_url || event.venue_maps_url || 'https://maps.app.goo.gl/6i8ZZFUpJDyC1Qw76'
+  const mapsUrl = liveContent?.maps_url || event.venue_maps_url || ''
   const mapsButtonText = liveContent?.maps_button_text || 'View Maps'
 
   return (
@@ -263,7 +264,7 @@ const SectionAkad: React.FC<SectionAkadProps> = ({ event, section }) => {
             </motion.div>
 
             {/* Text content with sequential animations */}
-            <div className="absolute top-[22%] left-1/2 flex -translate-x-1/2 flex-col items-center gap-3 w-full px-6">
+            <div className="absolute top-[20%] left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 w-full px-6">
               {/* Introduction text - First to appear */}
               <motion.div
                 initial={{ opacity: 0 }}
@@ -338,19 +339,41 @@ const SectionAkad: React.FC<SectionAkadProps> = ({ event, section }) => {
                   {venueAddress}
                 </p>
               </motion.div>
-            </div>
 
-            <motion.a
-              href={mapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="absolute bottom-20 left-1/2 z-11 -translate-x-1/2 bg-[#D08E61] border-[5px] border-[#C47C9E] rounded-full px-6 py-2 shadow-md flex items-center justify-center font-doodle-head text-white text-xs sm:text-sm uppercase tracking-wide whitespace-nowrap leading-none select-none transition-all hover:opacity-90"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 2 }}
-            >
-              {mapsButtonText}
-            </motion.a>
+              {/* Dress Code Box & Maps Button */}
+              <motion.div
+                className="flex flex-col items-center gap-2 mt-1"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 2 }}
+                viewport={{ once: false }}
+              >
+                {/* Dress Code Box */}
+                <div className="flex flex-col items-center gap-0">
+                  <span className="text-[8px] sm:text-[9px] text-[#6B3D49] font-semibold tracking-wider uppercase select-none">
+                    kindly check the dress code
+                  </span>
+                  <Image
+                    src={DresscodeSvg}
+                    alt="dress code"
+                    className="w-[32vw] min-w-[110px] max-w-[160px] h-auto object-contain"
+                    loading="lazy"
+                  />
+                </div>
+
+                {/* Maps Button */}
+                {mapsUrl &&
+                  <a
+                    href={mapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#D08E61] border-[5px] border-[#C47C9E] rounded-full px-6 py-2 shadow-md flex items-center justify-center font-doodle-head text-white text-xs sm:text-sm uppercase tracking-wide whitespace-nowrap leading-none select-none transition-all hover:opacity-90"
+                  >
+                    {mapsButtonText}
+                  </a>
+                }
+              </motion.div>
+            </div>
 
             <motion.div
               initial={{ opacity: 0 }}

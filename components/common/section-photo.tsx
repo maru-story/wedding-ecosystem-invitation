@@ -8,11 +8,13 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
 } from '@/components/ui/carousel'
 import { SectionData } from '@/lib/api'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 interface SectionPhotoProps {
   section?: SectionData
@@ -55,19 +57,9 @@ const SectionPhoto: React.FC<SectionPhotoProps> = ({ section }) => {
   })()
 
   const [mainApi, setMainApi] = useState<CarouselApi>()
-  const [thumbApi, setThumbApi] = useState<CarouselApi>()
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [isModalOpen, setIsModalOpen] = useState(false)
-
-  // Group photos into chunks of 3 for thumbnails
-  const photoGroups = photos.reduce((groups: string[][], photo, index) => {
-    const groupIndex = Math.floor(index / 3)
-    if (!groups[groupIndex]) {
-      groups[groupIndex] = []
-    }
-    groups[groupIndex].push(photo)
-    return groups
-  }, [])
+  const thumbContainerRef = useRef<HTMLDivElement>(null)
 
   // Sync main carousel with selected image
   useEffect(() => {
@@ -76,13 +68,26 @@ const SectionPhoto: React.FC<SectionPhotoProps> = ({ section }) => {
     }
   }, [selectedImageIndex, mainApi])
 
-  // Sync thumbnail carousel to show the group containing selected image
+  // Sync thumbnail container scroll to keep selected image centered
   useEffect(() => {
-    if (thumbApi && selectedImageIndex !== undefined) {
-      const targetGroupIndex = Math.floor(selectedImageIndex / 3)
-      thumbApi.scrollTo(targetGroupIndex)
+    if (thumbContainerRef.current && selectedImageIndex !== undefined) {
+      const container = thumbContainerRef.current
+      const wrapper = container.children[0] as HTMLElement
+      if (wrapper) {
+        const selectedButton = wrapper.children[selectedImageIndex] as HTMLElement
+        if (selectedButton) {
+          const containerWidth = container.clientWidth
+          const buttonWidth = selectedButton.clientWidth
+          const buttonLeft = selectedButton.offsetLeft
+
+          container.scrollTo({
+            left: buttonLeft - containerWidth / 2 + buttonWidth / 2,
+            behavior: 'smooth'
+          })
+        }
+      }
     }
-  }, [selectedImageIndex, thumbApi])
+  }, [selectedImageIndex])
 
   const handleImageClick = (index: number) => {
     setSelectedImageIndex(index)
@@ -251,6 +256,7 @@ const SectionPhoto: React.FC<SectionPhotoProps> = ({ section }) => {
                               height={720}
                               className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
                               loading="lazy"
+                              unoptimized
                             />
                             {/* Hover overlay */}
                             <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/10">
@@ -275,6 +281,8 @@ const SectionPhoto: React.FC<SectionPhotoProps> = ({ section }) => {
                       </CarouselItem>
                     ))}
                   </CarouselContent>
+                  <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-30 bg-black/40 border-none text-white hover:bg-black/60 hover:text-white" />
+                  <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-30 bg-black/40 border-none text-white hover:bg-black/60 hover:text-white" />
                 </Carousel>
               ) : (
                 <div className="flex h-full w-full items-center justify-center">
@@ -286,48 +294,41 @@ const SectionPhoto: React.FC<SectionPhotoProps> = ({ section }) => {
             </motion.div>
           </div>
 
-          {/* Thumbnail Carousel - Shows 3 thumbnails per slide */}
+          {/* Thumbnail Scroll - Shows horizontally scrollable list with scrollbar below background card */}
           {photos.length > 0 && (
-            <div className="relative w-full px-4">
-              <Carousel setApi={setThumbApi} className="w-full">
-                <CarouselContent>
-                  {photoGroups.map((group, groupIndex) => (
-                    <CarouselItem key={groupIndex}>
-                      <div className="overflow-hidden rounded-lg border-10 border-white bg-white max-[400px]:border-[6px]">
-                        <div className="grid grid-cols-3">
-                          {group.map((photo, photoIndexInGroup) => {
-                            const globalPhotoIndex =
-                              groupIndex * 3 + photoIndexInGroup
-                            const isSelected =
-                              selectedImageIndex === globalPhotoIndex
+            <div className="w-full px-6">
+              <div
+                ref={thumbContainerRef}
+                className="scrollbar-custom flex overflow-x-auto pb-3 scroll-smooth select-none"
+              >
+                <div className="flex w-max shrink-0 bg-white rounded-lg border-10 border-white max-[400px]:border-[6px] shadow-sm gap-3">
+                  {photos.map((photo, index) => {
+                    const isSelected = selectedImageIndex === index
 
-                            return (
-                              <motion.button
-                                key={globalPhotoIndex}
-                                onClick={() => handleImageClick(globalPhotoIndex)}
-                                className={`relative overflow-hidden transition-all duration-300 ${isSelected
-                                  ? 'ring-2 ring-[#CF935F] ring-inset'
-                                  : 'hover:brightness-110'
-                                  }`}
-                                whileTap={{ scale: 0.95 }}
-                              >
-                                <Image
-                                  src={photo}
-                                  alt={`Thumbnail ${globalPhotoIndex + 1}`}
-                                  width={120}
-                                  height={240}
-                                  className="h-40 w-full object-cover px-2 max-[400px]:h-28 max-[400px]:px-1"
-                                  loading="lazy"
-                                />
-                              </motion.button>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-              </Carousel>
+                    return (
+                      <motion.button
+                        key={index}
+                        onClick={() => handleImageClick(index)}
+                        className={`relative shrink-0 overflow-hidden rounded-md transition-all duration-300 ${isSelected
+                          ? 'ring-2 ring-[#CF935F] scale-105'
+                          : 'brightness-75 hover:brightness-100'
+                          }`}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Image
+                          src={photo}
+                          alt={`Thumbnail ${index + 1}`}
+                          width={120}
+                          height={240}
+                          className="h-40 w-28 object-cover max-[400px]:h-28 max-[400px]:w-20"
+                          loading="lazy"
+                          unoptimized
+                        />
+                      </motion.button>
+                    )
+                  })}
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -430,6 +431,7 @@ const SectionPhoto: React.FC<SectionPhotoProps> = ({ section }) => {
                 height={1080}
                 className="max-h-[90vh] max-w-full rounded-lg object-contain"
                 loading="lazy"
+                unoptimized
               />
             </motion.div>
 
@@ -470,6 +472,7 @@ const SectionPhoto: React.FC<SectionPhotoProps> = ({ section }) => {
                           height={40}
                           className="h-8 w-12 object-cover"
                           loading="lazy"
+                          unoptimized
                         />
                       </button>
                     )

@@ -163,8 +163,14 @@ export async function submitRsvp(payload: RsvpPayload): Promise<RsvpResponse> {
   if (!response.ok) {
     const error = await response
       .json()
-      .catch(() => ({ message: 'Gagal mengirim RSVP' }))
-    throw new Error(error.message || 'Gagal mengirim RSVP')
+      .catch(() => ({ message: 'Failed to submit RSVP' }))
+    
+    let errorMsg = error.error.message
+    if (error.error.details && Array.isArray(error.error.details) && error.error.details.length > 0) {
+      errorMsg = error.error.details.map((d: { message: string }) => d.message).join(', ')
+    }
+    
+    throw new Error(errorMsg || 'Failed to submit RSVP')
   }
 
   return response.json()
@@ -237,8 +243,14 @@ export async function submitMessage(
   if (!response.ok) {
     const error = await response
       .json()
-      .catch(() => ({ message: 'Gagal mengirim ucapan' }))
-    throw new Error(error.message || 'Gagal mengirim ucapan')
+      .catch(() => ({ message: 'Failed to send message' }))
+    
+    let errorMsg = error.error.message
+    if (error.error.details && Array.isArray(error.error.details) && error.error.details.length > 0) {
+      errorMsg = error.error.details.map((d: { message: string }) => d.message).join(', ')
+    }
+    
+    throw new Error(errorMsg || 'Failed to send message')
   }
 
   return response.json()

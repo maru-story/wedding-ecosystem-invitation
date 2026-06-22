@@ -12,10 +12,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { AdaptedGuest, submitRsvp, SectionData } from '@/lib/api'
+import { AdaptedGuest, SectionData, submitRsvp } from '@/lib/api'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 interface SectionKonfirmasiProps {
@@ -50,9 +50,9 @@ const SectionKonfirmasi: React.FC<SectionKonfirmasiProps> = ({ guest, eventId, s
   }, [])
 
   const introText = liveContent?.intro_text || 'Please let us know if you will be\njoining us by filling out the form below:'
-  
-  const maxPlusOne = guest?.plus_one_count !== undefined 
-    ? guest.plus_one_count 
+
+  const maxPlusOne = guest?.plus_one_count !== undefined
+    ? guest.plus_one_count
     : (liveContent?.max_plus_one ?? 10)
 
   const rsvpAttendance = guest?.rsvp?.attendance
@@ -65,8 +65,8 @@ const SectionKonfirmasi: React.FC<SectionKonfirmasiProps> = ({ guest, eventId, s
     initialAttendance = 'cannot-attend'
   }
 
-  const initialGuestCount = guest?.rsvp 
-    ? Math.max(0, guest.rsvp.guest_count - 1).toString() 
+  const initialGuestCount = guest?.rsvp
+    ? Math.max(0, guest.rsvp.guest_count - 1).toString()
     : '0'
 
   const [name, setName] = useState(guest?.nama || '')
@@ -117,7 +117,7 @@ const SectionKonfirmasi: React.FC<SectionKonfirmasiProps> = ({ guest, eventId, s
     e.preventDefault()
 
     if (!guest) {
-      toast.error('Data tamu tidak ditemukan')
+      toast.error('Guest data not found')
       return
     }
 
@@ -144,10 +144,10 @@ const SectionKonfirmasi: React.FC<SectionKonfirmasiProps> = ({ guest, eventId, s
       })
 
       setIsSubmitted(true)
-      toast.success('Konfirmasi kehadiran berhasil dikirim!')
+      toast.success('RSVP successfully submitted!')
     } catch (error) {
       console.error('Error submitting RSVP:', error)
-      toast.error('Gagal mengirim konfirmasi. Silakan coba lagi.')
+      toast.error(error instanceof Error ? error.message : 'Failed to submit RSVP. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -323,9 +323,8 @@ const SectionKonfirmasi: React.FC<SectionKonfirmasiProps> = ({ guest, eventId, s
               viewport={{ once: false, amount: 0.5 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.5, ease: 'easeOut' }}
-              className={`absolute top-[58%] left-1/2 z-20 flex h-auto w-[65%] -translate-x-1/2 -translate-y-1/2 flex-col items-center ${
-                isPreviewMode ? 'pointer-events-none select-none opacity-90' : ''
-              }`}
+              className={`absolute top-[58%] left-1/2 z-20 flex h-auto w-[65%] -translate-x-1/2 -translate-y-1/2 flex-col items-center ${isPreviewMode ? 'pointer-events-none select-none opacity-90' : ''
+                }`}
             >
               {isSubmitted ? (
                 <div className="flex w-full flex-col justify-center items-center text-center space-y-4 text-black select-none">
@@ -333,10 +332,10 @@ const SectionKonfirmasi: React.FC<SectionKonfirmasiProps> = ({ guest, eventId, s
                     <p className="text-[10px] sm:text-xs font-semibold text-[#6B3D49]">Thank you for your response,</p>
                     <p className="text-xs sm:text-sm font-bold text-[#6B3D49]">{name}</p>
                   </div>
-                  
+
                   <div className="bg-[#F0EFEF] p-3 rounded-lg w-full text-[10px] sm:text-xs space-y-2 border border-[#E0DEDE] leading-relaxed">
                     <p className="text-[#6B3D49]">
-                      Status Kehadiran: <br/>
+                      Attendance Status: <br />
                       <span className="font-bold text-[#D08E61]">
                         {attendance === 'akad' && 'Akad'}
                         {attendance === 'resepsi' && 'Reception'}
@@ -346,7 +345,7 @@ const SectionKonfirmasi: React.FC<SectionKonfirmasiProps> = ({ guest, eventId, s
                     </p>
                     {attendance !== 'cannot-attend' && (
                       <p className="text-[#6B3D49]">
-                        Tamu Tambahan: <span className="font-bold">{guestCount} orang</span>
+                        Additional Guests: <span className="font-bold">{guestCount} guests</span>
                       </p>
                     )}
                   </div>
@@ -444,57 +443,63 @@ const SectionKonfirmasi: React.FC<SectionKonfirmasiProps> = ({ guest, eventId, s
 
                   {/* Guest Counter */}
                   {attendance !== 'cannot-attend' && maxPlusOne > 0 && (
-                    <div className="mt-2 flex flex-col items-center space-y-1.5">
-                      <Label className="text-center text-xs text-[#6B3D49]">
-                        Additional Guests
-                      </Label>
-                      <div className="flex items-center">
-                        <Button
-                          type="button"
-                          onClick={decrementGuests}
-                          disabled={isPreviewMode}
-                          className="h-5 w-5 rounded-full bg-white p-0 text-xs text-[#DD73A1]"
-                          aria-label="Reduce guest count"
-                          tabIndex={isInvitationOpen && !isPreviewMode ? 0 : -1}
-                        >
-                          -
-                        </Button>
-                        <div className="mx-2 flex-1">
-                          <Input
-                            type="number"
-                            value={guestCount ?? ''}
-                            onChange={(e) => {
-                              const value = e.target.value
-                              const parsed = parseInt(value, 10) || 0
-                              if (parsed > maxPlusOne) {
-                                setGuestCount(maxPlusOne.toString())
-                              } else if (parsed < 0) {
-                                setGuestCount('0')
-                              } else {
-                                setGuestCount(parsed.toString())
-                              }
-                            }}
+                    <>
+                      <div className="mt-2 flex flex-col items-center space-y-1">
+                        <Label className="text-center text-xs text-[#6B3D49]">
+                          Additional Guests
+                        </Label>
+                        <div className="flex items-center">
+                          <Button
+                            type="button"
+                            onClick={decrementGuests}
                             disabled={isPreviewMode}
-                            className="h-5 w-[100px] [appearance:textfield] rounded-full border-none bg-white text-center text-xs text-[#6B3D49] focus-visible:ring-0 focus-visible:ring-offset-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                            max={maxPlusOne}
-                            min={0}
-                            inputMode="numeric"
+                            className="h-5 w-5 rounded-full bg-white p-0 text-xs text-[#DD73A1]"
+                            aria-label="Reduce guest count"
                             tabIndex={isInvitationOpen && !isPreviewMode ? 0 : -1}
-                          />
+                          >
+                            -
+                          </Button>
+                          <div className="mx-2 flex-1">
+                            <Input
+                              type="number"
+                              value={guestCount ?? ''}
+                              onChange={(e) => {
+                                const value = e.target.value
+                                const parsed = parseInt(value, 10) || 0
+                                if (parsed > maxPlusOne) {
+                                  setGuestCount(maxPlusOne.toString())
+                                } else if (parsed < 0) {
+                                  setGuestCount('0')
+                                } else {
+                                  setGuestCount(parsed.toString())
+                                }
+                              }}
+                              disabled={isPreviewMode}
+                              className="h-5 w-[100px] [appearance:textfield] rounded-full border-none bg-white text-center text-xs text-[#6B3D49] focus-visible:ring-0 focus-visible:ring-offset-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                              max={maxPlusOne}
+                              min={0}
+                              inputMode="numeric"
+                              tabIndex={isInvitationOpen && !isPreviewMode ? 0 : -1}
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            onClick={incrementGuests}
+                            disabled={isPreviewMode}
+                            className="h-5 w-5 rounded-full bg-white p-0 text-xs text-[#DD73A1]"
+                            aria-label="Increase guest count"
+                            tabIndex={isInvitationOpen && !isPreviewMode ? 0 : -1}
+                          >
+                            +
+                          </Button>
                         </div>
-                        <Button
-                          type="button"
-                          onClick={incrementGuests}
-                          disabled={isPreviewMode}
-                          className="h-5 w-5 rounded-full bg-white p-0 text-xs text-[#DD73A1]"
-                          aria-label="Increase guest count"
-                          tabIndex={isInvitationOpen && !isPreviewMode ? 0 : -1}
-                        >
-                          +
-                        </Button>
                       </div>
-                    </div>
+                      <p className="text-xs text-[#6B3D49]/80 font-medium text-center">
+                        Maximum of {maxPlusOne} additional guests
+                      </p>
+                    </>
                   )}
+
 
                   {/* Submit Button styled as Pill Badge */}
                   <Button

@@ -12,11 +12,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'pub-3334be0afedb48ae85de0e143ffa2130.r2.dev',
+        hostname: 'cdn.maruplanner.my.id',
       },
       {
         protocol: 'https',
-        hostname: 'cdn.maruplanner.my.id',
+        hostname: 'dev-cdn.maruplanner.my.id',
       },
       {
         protocol: 'http',
