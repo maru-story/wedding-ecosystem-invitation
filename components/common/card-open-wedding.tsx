@@ -66,8 +66,9 @@ const CardOpenWedding: React.FC<{
   subtitle?: string
   buttonText?: string
   targetId?: string
-}> = ({ name, loading, event, subtitle, buttonText, targetId }) => {
-  const { openInvitation, isInvitationOpen } = useInvitation()
+  qrPayload?: string | null
+}> = ({ name, loading, event, subtitle, buttonText, targetId, qrPayload }) => {
+  const { openInvitation, isInvitationOpen, setIsQrOpen } = useInvitation()
 
   const [isPreview, setIsPreview] = React.useState(false)
   React.useEffect(() => {
@@ -192,7 +193,7 @@ const CardOpenWedding: React.FC<{
         </motion.div>
 
         {/* Inside Card Content (Icon, Subtitle/Couple Names, Button/Guest Details) */}
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-8 w-full px-6">
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 w-full px-6">
           {/* Couple Names (Fades out when invitation is opened) */}
           <motion.div
             className="flex flex-col items-center text-center w-full"
@@ -214,12 +215,35 @@ const CardOpenWedding: React.FC<{
               height={54}
               className="h-auto w-auto mb-4"
             />
-            <h1
-              className="font-little-hands leading-none text-[#603C24] font-normal"
-              style={{ fontSize: 'clamp(32px, 15vw, 72px)' }}
-            >
-              {subtitle || `${event.bride_name.toLowerCase()} & ${event.groom_name.toLowerCase()}`}
-            </h1>
+            {subtitle ? (
+              <h1
+                className="font-little-hands leading-none text-[#603C24] font-normal text-center whitespace-pre-line"
+                style={{ fontSize: 'clamp(32px, 15vw, 72px)' }}
+              >
+                {subtitle}
+              </h1>
+            ) : (
+              <div className="flex flex-col items-center text-center leading-none">
+                <span
+                  className="leading-none font-little-hands text-[#603C24] font-normal"
+                  style={{ fontSize: 'clamp(32px, 15vw, 72px)' }}
+                >
+                  {event.bride_name.toLowerCase()}
+                </span>
+                <span
+                  className="font-little-hands text-[#603C24] font-normal block"
+                  style={{ fontSize: 'clamp(24px, 10vw, 48px)' }}
+                >
+                  &
+                </span>
+                <span
+                  className="font-little-hands text-[#603C24] font-normal"
+                  style={{ fontSize: 'clamp(32px, 15vw, 72px)' }}
+                >
+                  {event.groom_name.toLowerCase()}
+                </span>
+              </div>
+            )}
             {/* Wedding Date (Fades in when opened, positioned mepet below couple names) */}
             <motion.p
               className="font-little-hands leading-none text-[#603C24] font-normal"
@@ -240,7 +264,7 @@ const CardOpenWedding: React.FC<{
           <div className="relative flex flex-col items-center justify-center w-full min-h-[120px]">
             {/* "Lihat Undangan" Button (Only clickable when closed) */}
             <motion.button
-              className="cursor-pointer rounded-[10px] bg-[#275E78] px-8 py-2 text-sm sm:px-12 sm:py-2.5 sm:text-base md:px-[40px] md:py-3 text-center font-minecraft font-normal text-nowrap uppercase text-[#C2A198]"
+              className="cursor-pointer rounded-[10px] bg-[#275E78] border-2 border-transparent w-[200px] sm:w-[240px] md:w-[280px] py-2 text-sm sm:py-2.5 sm:text-base md:py-3 text-center font-minecraft font-normal text-nowrap uppercase text-[#C2A198]"
               initial={{ opacity: 0 }}
               transition={
                 isPreview
@@ -258,6 +282,28 @@ const CardOpenWedding: React.FC<{
             >
               {buttonText || 'Open Invitation'}
             </motion.button>
+
+            {qrPayload && (
+              <motion.button
+                className="mt-3 cursor-pointer rounded-[10px] bg-white border-2 border-[#275E78] w-[200px] sm:w-[240px] md:w-[280px] py-2 text-sm sm:py-2.5 sm:text-base md:py-3 text-center font-minecraft font-normal text-nowrap uppercase text-[#C2A198] hover:bg-gray-50 transition-all z-20"
+                initial={{ opacity: 0 }}
+                transition={
+                  isPreview
+                    ? { duration: 0.2 }
+                    : isInvitationOpen
+                      ? { duration: 0.5 }
+                      : { duration: 1, delay: 6 }
+                }
+                animate={{
+                  opacity: isInvitationOpen ? 0 : (loading ? 0 : 1),
+                  scale: isInvitationOpen ? 0.9 : 1,
+                  pointerEvents: isInvitationOpen ? 'none' : 'auto'
+                }}
+                onClick={() => setIsQrOpen(true)}
+              >
+                Show QR Code
+              </motion.button>
+            )}
 
             {/* Guest Personalization Details (Fades in when opened) */}
             <motion.div

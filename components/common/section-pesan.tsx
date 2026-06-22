@@ -149,7 +149,7 @@ const SectionPesan: React.FC<SectionPesanProps> = ({ guest, eventId, section }) 
       setName('')
       toast.success('Message successfully sent!')
     } catch (error) {
-      toast.error('Failed to send message. Please try again.')
+      toast.error(error instanceof Error ? error.message : 'Failed to send message. Please try again.')
       console.error('Error submitting message:', error)
     } finally {
       setIsSubmitting(false)
@@ -213,17 +213,24 @@ const SectionPesan: React.FC<SectionPesanProps> = ({ guest, eventId, section }) 
                   placeholder="Write your wishes & prayers for us :)"
                   className="h-[100px] resize-none rounded-lg border border-[#558384] bg-[#E9CBA6]/50 text-sm max-[400px]:h-[20vw] max-[400px]:text-[10px]"
                   tabIndex={isInvitationOpen ? 0 : -1}
+                  maxLength={500}
                   required
                 />
-                {/* Submit Button */}
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="float-right flex h-fit w-1/2 rounded-lg border border-[#E6D1B9] bg-[#C8B6A1] py-1 text-sm font-medium text-white uppercase transition-all duration-300 disabled:opacity-50 max-[400px]:h-[25px] max-[400px]:text-[10px]"
-                  tabIndex={isInvitationOpen ? 0 : -1}
-                >
-                  {isSubmitting ? 'Sending...' : 'Send'}
-                </Button>
+                {/* Submit Button & Character Count Indicator */}
+                <div className="flex justify-between pt-1">
+                  <span className={`text-lg ${message.length >= 500 ? 'text-[#BD3F40] font-semibold' : 'text-[#558384]'
+                    }`}>
+                    {message.length}/500
+                  </span>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex h-fit w-1/2 justify-center items-center rounded-lg border border-[#E6D1B9] bg-[#C8B6A1] py-1 text-sm font-medium text-white uppercase transition-all duration-300 disabled:opacity-50 max-[400px]:h-[25px] max-[400px]:text-[10px]"
+                    tabIndex={isInvitationOpen ? 0 : -1}
+                  >
+                    {isSubmitting ? 'Sending...' : 'Send'}
+                  </Button>
+                </div>
               </form>
             </motion.div>
           </div>
@@ -297,7 +304,7 @@ const SectionPesan: React.FC<SectionPesanProps> = ({ guest, eventId, section }) 
                               <h4 className="text-xs font-medium text-[#BD3F40]">
                                 {msg.name}
                               </h4>
-                              <span className="text-[9px] text-[#606161]/50">
+                              <span className="text-[9px] text-black">
                                 {new Date(msg.createdAt).toLocaleTimeString(
                                   'en-US',
                                   {
@@ -307,7 +314,7 @@ const SectionPesan: React.FC<SectionPesanProps> = ({ guest, eventId, section }) 
                                 )}
                               </span>
                             </div>
-                            <p className="text-xs leading-relaxed text-[#9F9E9F]">
+                            <p className="text-xs leading-relaxed text-black font-doodle-head">
                               {msg.message}
                             </p>
                           </div>

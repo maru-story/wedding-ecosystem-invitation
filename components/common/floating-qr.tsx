@@ -23,7 +23,7 @@ interface FloatingQrProps {
 }
 
 export default function FloatingQr({ guestName, qrPayload }: FloatingQrProps) {
-  const { isInvitationOpen } = useInvitation()
+  const { isInvitationOpen, isQrOpen, setIsQrOpen } = useInvitation()
   const qrRef = useRef<HTMLDivElement>(null)
 
   const handleDownload = useCallback(() => {
@@ -69,7 +69,7 @@ export default function FloatingQr({ guestName, qrPayload }: FloatingQrProps) {
   if (!qrPayload) return null
 
   return (
-    <Drawer>
+    <Drawer open={isQrOpen} onOpenChange={setIsQrOpen}>
       <motion.div
         initial={{ opacity: 0, x: -100 }}
         animate={

@@ -2,6 +2,7 @@
 @import 'tw-animate-css';
 
 @custom-variant light (&);
+@custom-variant dark (.dark &);
 
 @custom-variant limitedHeight (@media (min-height: 667px));
 
@@ -122,6 +123,7 @@
 /* Custom scrollbar styles for the message container */
 .scrollbar-custom::-webkit-scrollbar {
   width: 8px;
+  height: 6px;
 }
 
 .scrollbar-custom::-webkit-scrollbar-track {

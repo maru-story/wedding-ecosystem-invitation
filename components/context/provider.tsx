@@ -11,6 +11,9 @@ interface InvitationContextType {
 
   loading: boolean
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
+
+  isQrOpen: boolean
+  setIsQrOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const InvitationContext = createContext<InvitationContextType | undefined>(
@@ -23,6 +26,7 @@ export const InvitationProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isInvitationOpen, setIsInvitationOpen] = useState(false)
   const [progress, setProgress] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [isQrOpen, setIsQrOpen] = useState(false)
 
   // Custom smooth scroll function with configurable duration and easing
   const smoothScrollTo = (element: HTMLElement, duration: number = 1000) => {
@@ -115,6 +119,8 @@ export const InvitationProvider: React.FC<{ children: React.ReactNode }> = ({
         setProgress,
         loading,
         setLoading,
+        isQrOpen,
+        setIsQrOpen,
       }}
     >
       {children}

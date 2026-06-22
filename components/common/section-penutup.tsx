@@ -1,6 +1,6 @@
 'use client'
 
-import BgPenutup from '@/components/assets/images/section-penutup/bg-section-penutup.png'
+import BgPenutup from '@/components/assets/images/section-penutup/bg-section-penutup.svg'
 import FotoPenutup from '@/components/assets/images/section-penutup/foto-penutup-section.png'
 import { SectionData } from '@/lib/api'
 import { motion } from 'framer-motion'
@@ -132,6 +132,24 @@ const SectionPenutup: React.FC<SectionPenutupProps> = ({ section }) => {
               </motion.span>
             ))}
           </span>
+        </motion.div>
+
+        {/* Layer 4: Instagram credit link */}
+        <motion.div
+          className="absolute bottom-[3%] left-1/2 -translate-x-1/2 z-10 text-center"
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          viewport={{ once: true }}
+        >
+          <a
+            href="https://www.instagram.com/themarustory/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1.5 font-little-hands text-xl text-[#7596AF] hover:text-white"
+          >
+            <span>@themarustory/</span>
+          </a>
         </motion.div>
       </div>
     </section>
