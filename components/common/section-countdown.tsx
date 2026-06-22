@@ -48,28 +48,7 @@ const SectionCountdown: React.FC<SectionCountdownProps> = ({ event, section }) =
 
   const targetDate = liveContent?.target_date || event.event_date
 
-  // Create Google Calendar URL
-  const createGoogleCalendarUrl = () => {
-    // Event details
-    const eventTitle = `Wedding of ${event.bride_name} & ${event.groom_name}`
-    const eventDescription = `Wedding Celebration of ${event.bride_name} & ${event.groom_name}`
-
-    // Use the exact Google Maps location link provided
-    const eventLocation = event.venue_maps_url || 'https://maps.app.goo.gl/6i8ZZFUpJDyC1Qw76'
-
-    // Format start and end dates for Google Calendar
-    const startDate = new Date(targetDate)
-    const endDate = new Date(startDate.getTime() + 4 * 60 * 60 * 1000) // Assuming 4-hour event
-
-    // Convert to UTC format required by Google Calendar
-    const formattedStart = startDate.toISOString().replace(/-|:|\.\d+/g, '')
-    const formattedEnd = endDate.toISOString().replace(/-|:|\.\d+/g, '')
-
-    // Create the URL
-    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventTitle)}&dates=${formattedStart}/${formattedEnd}&details=${encodeURIComponent(eventDescription)}&location=${encodeURIComponent(eventLocation)}`
-  }
-
-  const calendarUrl = liveContent?.calendar_link || createGoogleCalendarUrl()
+  const calendarUrl = liveContent?.calendar_link || ''
 
   return (
     <section className="relative w-full overflow-hidden" id="section-countdown">
@@ -362,17 +341,19 @@ const SectionCountdown: React.FC<SectionCountdownProps> = ({ event, section }) =
                 loading="lazy"
               />
             </motion.div>
-            <motion.a
-              href={calendarUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="absolute bottom-[15%] left-1/2 z-11 -translate-x-1/2 bg-[#D08E61] border-[5px] border-[#C47C9E] rounded-full px-6 py-2 shadow-md flex items-center justify-center font-doodle-head text-white text-xs sm:text-sm uppercase tracking-wide whitespace-nowrap leading-none select-none transition-all hover:opacity-90 max-lg:bottom-[12.5%]"
-              whileInView={{ opacity: 1 }}
-              initial={{ opacity: 0 }}
-              transition={{ duration: 0.8, delay: 1 }}
-            >
-              Add to Calendar
-            </motion.a>
+            {calendarUrl && (
+              <motion.a
+                href={calendarUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute bottom-[15%] left-1/2 z-11 -translate-x-1/2 bg-[#D08E61] border-[5px] border-[#C47C9E] rounded-full px-6 py-2 shadow-md flex items-center justify-center font-doodle-head text-white text-xs sm:text-sm uppercase tracking-wide whitespace-nowrap leading-none select-none transition-all hover:opacity-90 max-lg:bottom-[12.5%]"
+                whileInView={{ opacity: 1 }}
+                initial={{ opacity: 0 }}
+                transition={{ duration: 0.8, delay: 1 }}
+              >
+                Add to Calendar
+              </motion.a>
+            )}
           </div>
         </motion.div>
       </div>

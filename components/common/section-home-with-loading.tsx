@@ -33,10 +33,12 @@ export default function SectionHome({
   name,
   event,
   sections: initialSections,
+  qrPayload,
 }: {
   name: string
   event: EventData
   sections: SectionData[]
+  qrPayload?: string | null
 }) {
   const { loading, setLoading, progress, setProgress, isInvitationOpen } =
     useInvitation()
@@ -84,7 +86,13 @@ export default function SectionHome({
       return;
     }
 
-    const IS_VISITED = localStorage.getItem('IS_VISITED') ?? null
+    let IS_VISITED: string | null = null
+    try {
+      IS_VISITED = localStorage.getItem('IS_VISITED') ?? null
+    } catch (e) {
+      console.warn('localStorage is not accessible:', e)
+    }
+
     if (!IS_VISITED) {
       if (refLoading.current) return
 
@@ -94,7 +102,11 @@ export default function SectionHome({
             clearInterval(timer)
             // Add a small delay before showing main content fully
             setTimeout(() => setLoading(false), 2000)
-            localStorage.setItem('IS_VISITED', 'true')
+            try {
+              localStorage.setItem('IS_VISITED', 'true')
+            } catch (e) {
+              console.warn('Failed to save to localStorage:', e)
+            }
             return 100
           }
           return prevProgress + Math.floor(Math.random() * 10) + 1
@@ -114,7 +126,7 @@ export default function SectionHome({
   // Variants for the text scrolling
   const textScrollVariants: Variants = {
     animate: {
-      x: ['-100%', '100%'],
+      x: ['100%', '-100%'],
       transition: {
         x: {
           repeat: Infinity,
@@ -314,6 +326,7 @@ export default function SectionHome({
           subtitle={coverContent?.subtitle}
           buttonText={coverContent?.opening_text}
           targetId={targetId}
+          qrPayload={qrPayload}
         />
       </motion.div>
     </section>
