@@ -58,3 +58,10 @@ lib/
    - On the primary dev machine, the path is `/home/mochrafi/wedding-ecosystem`.
    - On other devices, check `../../wedding-ecosystem` or sibling `../wedding-ecosystem`.
    - Access monorepo files directly using these relative/absolute paths to inspect data shapes or code when working on the invitation repo.
+6. **Selective Version Bumps**: Only bump the version of packages/apps that actually have changes. If this package has no changes during a release or hotfix cycle, keep its current version.
+
+### Automated Release Report Generation (Mandatory — June 2026)
+
+Whenever you detect a version bump in the `package.json` file of this repository or sibling packages in `wedding-ecosystem` during a commit preparation or release workflow:
+1. You **MUST** proactively ask the user: *"Saya melihat ada kenaikan versi aplikasi. Apakah Anda ingin saya membuat laporan pembaruan PDF otomatis untuk versi ini?"*
+2. If the user agrees, execute the `wedding-report-generator` skill to draft the report from git logs, run the Playwright screenshot tests (using the monorepo test suite), update the JSON file, and compile the final PDF.

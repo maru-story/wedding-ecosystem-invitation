@@ -40,6 +40,7 @@
 1. **Hydration Warnings**: Never initialize state utilizing `window` properties on load. Initial state in components (e.g., `useState`) must use static defaults (e.g. `800` and `600`) so server-side markup matches the client. Update to actual screen values in `useEffect` on mount.
 2. **Focus Management**: Background interactive sections (`SectionKonfirmasi`, `SectionPesan`) must lock out keyboard navigation when the envelope is closed. Set `tabIndex={isInvitationOpen ? 0 : -1}` on all input, textarea, and button elements in these sections.
 3. **Animations**: Do not alter, slow down, or delete visual animations (the slide-down envelope, minecraft loader, or rotating flower flip effects) unless explicitly requested.
+4. **Selective Version Bumps**: DO NOT bump the version of any package or application that does not have any code changes during a hotfix or release cycle.
 
 ## Git & PR Conventions
 - **Branch Naming**: Use the pattern `[type]/[short-description]` (e.g. `fix/design`, `fix/production-reliability`).
@@ -51,3 +52,8 @@
   - Check the absolute directory: `/home/mochrafi/wedding-ecosystem` (if on the main dev machine).
   - Check relative directories: `../../wedding-ecosystem` or sibling `../wedding-ecosystem` (if cloned side-by-side on another device).
 - **Inspecting Schemas & API**: Look up monorepo types inside `{MONOREPO_PATH}/packages/shared/src/types/`, Prisma DB models inside `{MONOREPO_PATH}/packages/db/prisma/schema.prisma`, and API endpoints inside `{MONOREPO_PATH}/packages/api/src/routes/`.
+
+## Release Report Generation (Mandatory — June 2026)
+- **Version Bump Detection**: Whenever you detect a version bump in the `package.json` file of this repository or sibling packages in `wedding-ecosystem` during a commit preparation or release workflow:
+  1. You **MUST** proactively ask the user: *"Saya melihat ada kenaikan versi aplikasi. Apakah Anda ingin saya membuat laporan pembaruan PDF otomatis untuk versi ini?"*
+  2. If approved, execute the `wedding-report-generator` skill to generate the client update report.

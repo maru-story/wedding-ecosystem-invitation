@@ -105,3 +105,12 @@ npm run build      # Build production bundle
 npm run lint       # Run lint check
 npx tsc --noEmit   # Compile-check TypeScript type-safety
 ```
+
+---
+
+## Rules for AI Agents (Release Report Generation)
+
+Whenever you detect a version bump in the `package.json` file of this repository or sibling packages in `wedding-ecosystem` during a commit preparation or release workflow:
+1. You **MUST** proactively ask the user: *"Saya melihat ada kenaikan versi aplikasi. Apakah Anda ingin saya membuat laporan pembaruan PDF otomatis untuk versi ini?"*
+2. If the user agrees, execute the `wedding-report-generator` skill to draft the report from git logs, run the Playwright screenshot tests (using the monorepo test suite), update the JSON file, and compile the final PDF.
+3. **Selective Version Bumps**: DO NOT bump the version of any package or application that does not have any code changes during a hotfix or release.
