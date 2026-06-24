@@ -17,6 +17,7 @@ import Kuma from '@/components/assets/images/section-pesan/kuma.svg'
 import Kyo from '@/components/assets/images/section-pesan/kyo.svg'
 import Spike from '@/components/assets/images/section-pesan/spike.svg'
 import { AdaptedGuest, fetchMessages, MessageData, SectionData, submitMessage } from '@/lib/api'
+import { parseJakartaDate } from '@/lib/date'
 
 interface ClientMessage {
   id: string
@@ -305,13 +306,7 @@ const SectionPesan: React.FC<SectionPesanProps> = ({ guest, eventId, section }) 
                                 {msg.name}
                               </h4>
                               <span className="text-[9px] text-black">
-                                {new Date(msg.createdAt).toLocaleTimeString(
-                                  'en-US',
-                                  {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                  }
-                                )}
+                                {parseJakartaDate(msg.createdAt).format('hh:mm A')}
                               </span>
                             </div>
                             <p className="text-xs leading-relaxed text-black font-doodle-head">

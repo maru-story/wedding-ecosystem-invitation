@@ -9,54 +9,14 @@ import OrnamentBottomLeft from '@/components/assets/images/card-open-wedding/orn
 import OrnamentTopRight from '@/components/assets/images/card-open-wedding/ornament-top-right.svg'
 import { useInvitation } from '@/components/context/provider'
 import { EventData } from '@/lib/api'
+import { parseJakartaDate } from '@/lib/date'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import React from 'react'
 
 const formatDateEnglish = (dateStr: string) => {
   if (!dateStr) return ''
-  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/)
-  if (match) {
-    const year = parseInt(match[1], 10)
-    const monthIndex = parseInt(match[2], 10) - 1
-    const day = parseInt(match[3], 10)
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ]
-    return `${months[monthIndex]} ${day}, ${year}`
-  }
-  try {
-    const date = new Date(dateStr)
-    if (isNaN(date.getTime())) return dateStr
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ]
-    return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`
-  } catch {
-    return dateStr
-  }
+  return parseJakartaDate(dateStr).format('MMMM D, YYYY')
 }
 
 const CardOpenWedding: React.FC<{

@@ -14,6 +14,7 @@ import Frame from '@/components/assets/images/section-countdown/frame-section-co
 import WatchCountdownBottomRight from '@/components/assets/images/section-countdown/watch-countdown-bottom-right.svg'
 import Countdown from '@/components/common/countdown'
 import { EventData, SectionData } from '@/lib/api'
+import { parseJakartaDate } from '@/lib/date'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import React, { useEffect, useState } from 'react'
@@ -310,11 +311,7 @@ const SectionCountdown: React.FC<SectionCountdownProps> = ({ event, section }) =
               className="absolute top-27.5 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 w-full"
             >
               <p className="font-little-hands text-3xl sm:text-5xl text-[#6B3D49] uppercase text-center text-nowrap px-4">
-                {new Intl.DateTimeFormat('en-US', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric'
-                }).format(new Date(targetDate))}
+                {parseJakartaDate(targetDate).format('MMMM D, YYYY')}
               </p>
               <p className="text-xl text-[#6B3D49] uppercase">Countdown</p>
             </motion.div>

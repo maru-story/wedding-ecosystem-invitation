@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { parseJakartaDate } from '@/lib/date'
 
 // Countdown component
 const Countdown: React.FC<{ targetDate: string }> = ({ targetDate }) => {
@@ -13,8 +14,8 @@ const Countdown: React.FC<{ targetDate: string }> = ({ targetDate }) => {
 
   useEffect(() => {
     const calculateTimeLeft = () => {
-      const weddingDate = new Date(targetDate).getTime()
-      const now = new Date().getTime()
+      const weddingDate = parseJakartaDate(targetDate).valueOf()
+      const now = Date.now()
       const difference = weddingDate - now
 
       if (difference > 0) {
