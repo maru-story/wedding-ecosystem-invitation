@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: '*.maruplanner.my.id',
+      },
+      {
+        protocol: 'https',
         hostname: 'cdn.maruplanner.my.id',
       },
       {

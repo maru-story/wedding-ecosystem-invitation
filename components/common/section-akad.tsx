@@ -11,6 +11,7 @@ import FlowerAkadTopLeft from '@/components/assets/images/section-akad/flower-ak
 import FlowerAkadTopRight from '@/components/assets/images/section-akad/flower-akad-top-right.svg'
 import Frame from '@/components/assets/images/section-akad/frame-akad-section.svg'
 import { EventData, SectionData } from '@/lib/api'
+import { parseJakartaDate } from '@/lib/date'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import React, { useEffect, useState } from 'react'
@@ -48,24 +49,16 @@ const SectionAkad: React.FC<SectionAkadProps> = ({ event, section }) => {
     return () => window.removeEventListener('message', handleMessage)
   }, [])
 
-  // Date formatting helpers
+  // Safe date parsing helper
   const rawAkadDate = liveContent?.akad?.date || event.event_date
-  const akadDateObj = new Date(rawAkadDate)
-  const akadDayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(akadDateObj).toUpperCase()
-  const akadFormattedDate = new Intl.DateTimeFormat('en-US', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric'
-  }).format(akadDateObj).toUpperCase()
+  const akadDateObj = parseJakartaDate(rawAkadDate)
+  const akadDayName = akadDateObj.format('dddd').toUpperCase()
+  const akadFormattedDate = akadDateObj.format('MMMM DD, YYYY').toUpperCase()
 
   const rawResepsiDate = liveContent?.resepsi?.date || event.event_date
-  const resepsiDateObj = new Date(rawResepsiDate)
-  const resepsiDayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(resepsiDateObj).toUpperCase()
-  const resepsiFormattedDate = new Intl.DateTimeFormat('en-US', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric'
-  }).format(resepsiDateObj).toUpperCase()
+  const resepsiDateObj = parseJakartaDate(rawResepsiDate)
+  const resepsiDayName = resepsiDateObj.format('dddd').toUpperCase()
+  const resepsiFormattedDate = resepsiDateObj.format('MMMM DD, YYYY').toUpperCase()
 
   const formatTime = (timeString: string) => {
     if (!timeString) return '';
