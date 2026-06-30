@@ -215,7 +215,7 @@ const Page: FC<PageProps> = async ({ params, searchParams }) => {
   return (
     <main className="container min-h-dvh overflow-x-hidden">
       {isMusicActive && <SectionMusic section={musicSection} />}
-      <FloatingQr guestName={guest.name} qrPayload={guest.qr_payload} />
+      <FloatingQr guestName={guest.name} qrPayload={guest.qr_payload} guestId={guest.id} event={event} />
 
       {activeSections.map((section) => renderSection(section.section_type))}
     </main>
