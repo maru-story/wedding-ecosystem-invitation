@@ -156,15 +156,18 @@ export default function FloatingQr({ guestName, qrPayload, guestId, event }: Flo
             <p className="text-sm font-medium text-[#6B3D49]">{guestName}</p>
             <div
               ref={qrRef}
-              className="rounded-lg border border-gray-200 bg-white p-4"
+              className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
             >
               <QRCode
                 value={qrPayload}
-                size={200}
+                size={240}
                 style={{ height: 'auto', maxWidth: '100%', width: '100%' }}
-                viewBox="0 0 200 200"
+                viewBox="0 0 240 240"
               />
             </div>
+            <p className="text-center text-xs text-gray-500 max-w-[280px]">
+              💡 Tingkatkan kecerahan layar HP Anda untuk mempermudah pemindaian saat check-in.
+            </p>
             <Button
               variant="outline"
               className="gap-2"
