@@ -40,19 +40,24 @@ export default function FloatingQr({ guestName, qrPayload, guestId, event }: Flo
   } | null>(null)
 
   useEffect(() => {
-    if (!isQrOpen || !guestId) return
+    if (!guestId) return
 
     const socket = io(WS_BASE_URL, {
       auth: {
         type: 'guest',
         guestId: guestId,
       },
-      transports: ['websocket'],
-      reconnectionAttempts: 3,
+      transports: ['websocket', 'polling'],
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
     })
 
     socket.on('connect', () => {
-      console.log('🔌 WebSocket connected for guest check-in tracking')
+      console.log('🔌 WebSocket connected for guest check-in tracking (ID:', guestId, ')')
+    })
+
+    socket.on('connect_error', (err) => {
+      console.warn('⚠️ WebSocket connection issue:', err.message)
     })
 
     interface GuestCheckedInPayload {
@@ -63,22 +68,30 @@ export default function FloatingQr({ guestName, qrPayload, guestId, event }: Flo
     }
 
     socket.on('guest_checked_in', (payload: GuestCheckedInPayload) => {
+      console.log('🎉 guest_checked_in event received:', payload)
       if (payload.guest_id === guestId) {
+        if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+          try {
+            navigator.vibrate([100, 50, 100])
+          } catch {}
+        }
         setCheckInData({
           guest_name: payload.guest_name,
           scan_count: payload.scan_count,
           checked_in_at: payload.checked_in_at,
         })
-        setIsWelcomeOpen(true)
         setIsQrOpen(false)
-        socket.disconnect() // Disconnect immediately to free server resources
+        setTimeout(() => {
+          setIsWelcomeOpen(true)
+        }, 200)
+        socket.disconnect() // Disconnect after check-in to free server resources
       }
     })
 
     return () => {
       socket.disconnect()
     }
-  }, [isQrOpen, guestId])
+  }, [guestId, setIsQrOpen])
 
   const handleDownload = useCallback(() => {
     if (!qrRef.current) return
