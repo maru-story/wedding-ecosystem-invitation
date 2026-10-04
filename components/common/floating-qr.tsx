@@ -201,100 +201,73 @@ export default function FloatingQr({ guestName, qrPayload, guestId, event }: Flo
       </Drawer>
 
       <Drawer open={isWelcomeOpen} onOpenChange={setIsWelcomeOpen}>
-        <DrawerContent className="mx-auto max-w-md p-6 bg-[#FAF8F5] border-amber-500/20 font-doodle-head">
+        <DrawerContent className="mx-auto max-w-md p-6 bg-[#FAF8F5] border-t border-amber-900/10">
           <div className="mx-auto w-12 h-1.5 rounded-full bg-gray-300 mb-6" />
           
-          <div className="relative text-center">
-            {/* Confetti / Particle Effect */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-t-[10px]">
-              {[...Array(12)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute h-2 w-2 rounded-full"
-                  style={{
-                    backgroundColor: ['#E0A899', '#B6A29F', '#C6A477', '#8A6D71'][i % 4],
-                    top: '50%',
-                    left: '50%',
-                  }}
-                  animate={{
-                    x: [0, (Math.random() - 0.5) * 250],
-                    y: [0, (Math.random() - 0.5) * 250 - 50],
-                    scale: [1, 0],
-                    opacity: [1, 0],
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    ease: 'easeOut',
-                    repeat: Infinity,
-                    repeatDelay: 2,
-                  }}
-                />
-              ))}
-            </div>
-
-            {/* Animated Checkmark */}
+          <div className="relative text-center px-2">
+            {/* Animated Minimal Checkmark Badge */}
             <motion.div
-              initial={{ scale: 0, rotate: -45 }}
+              initial={{ scale: 0, rotate: -30 }}
               animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', damping: 10, stiffness: 100 }}
-              className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 mb-4"
+              transition={{ type: 'spring', damping: 12, stiffness: 120 }}
+              className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200/60 mb-4 shadow-xs"
             >
-              <CheckCircle2 className="h-10 w-10" />
+              <CheckCircle2 className="h-9 w-9" />
             </motion.div>
 
-            <DrawerTitle className="text-2xl font-bold text-gray-800 font-doodle-head">
+            <DrawerTitle className="font-little-hands text-3xl sm:text-4xl text-[#603C24] leading-tight font-normal">
               Check-in Berhasil!
             </DrawerTitle>
 
-            <DrawerDescription className="mt-1 text-xs text-gray-500 font-doodle-head">
-              Pendaftaran kehadiran Anda telah tercatat
+            <DrawerDescription className="mt-1 text-sm text-gray-500 font-normal">
+              Kehadiran Anda telah berhasil dicatat oleh penerima tamu
             </DrawerDescription>
 
-            <div className="my-6 rounded-2xl border border-gray-100 bg-[#F5F2EC] p-4 text-center">
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider font-doodle-head">
+            <div className="my-6 rounded-2xl border border-stone-200/70 bg-white/80 backdrop-blur-xs p-5 text-center shadow-xs">
+              <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest">
                 Selamat Datang
               </p>
-              <h4 className="mt-1 font-bold text-gray-800 text-lg font-doodle-head font-normal">
+              <h4 className="mt-1.5 font-bold text-gray-900 text-xl sm:text-2xl">
                 {checkInData?.guest_name || guestName}
               </h4>
 
               {event && (
-                <p className="mt-1 text-xs text-[#6B3D49] font-medium font-doodle-head">
+                <p className="mt-1.5 text-sm sm:text-base text-[#6B3D49] font-medium">
                   di Pernikahan {event.bride_name} & {event.groom_name}
                 </p>
               )}
 
-              <div className="mt-4 border-t border-gray-200/50 pt-3 flex justify-around text-xs text-gray-600 font-medium">
-                <div>
-                  <span className="block text-gray-400 text-[10px] uppercase font-doodle-head">Waktu</span>
-                  <span className="font-doodle-head">
+              <div className="mt-4 border-t border-stone-100 pt-3.5 flex justify-around text-sm text-gray-700">
+                <div className="flex-1 text-center">
+                  <span className="block text-gray-400 text-xs uppercase tracking-wider mb-0.5">Waktu</span>
+                  <span className="font-semibold text-gray-800">
                     {checkInData?.checked_in_at
                       ? new Date(checkInData.checked_in_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
                       : new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'}
                   </span>
                 </div>
-                <div className="border-l border-gray-200/50" />
-                <div>
-                  <span className="block text-gray-400 text-[10px] uppercase font-doodle-head">Status</span>
-                  <span className="text-green-600 font-semibold font-doodle-head">Tiba di Venue</span>
+                <div className="w-[1px] bg-stone-200" />
+                <div className="flex-1 text-center">
+                  <span className="block text-gray-400 text-xs uppercase tracking-wider mb-0.5">Status</span>
+                  <span className="text-emerald-700 font-semibold">Tiba di Lokasi</span>
                 </div>
               </div>
             </div>
 
-            <p className="text-xs text-gray-500 leading-relaxed mb-6 font-doodle-head">
-              Silakan memasuki ruang acara pernikahan dan mengikuti petunjuk dari panitia.
+            <p className="text-sm text-gray-600 leading-relaxed mb-6 font-normal">
+              Silakan memasuki ruang acara dan menikmati seluruh rangkaian acara pernikahan.
             </p>
 
             <DrawerFooter className="p-0">
               <Button
                 variant="default"
-                className="w-full bg-[#B6A29F] hover:bg-[#A38E8B] text-white rounded-full py-2.5 font-semibold text-sm transition-colors shadow-md cursor-pointer font-doodle-head"
+                className="w-full bg-[#603C24] hover:bg-[#4E301C] text-white rounded-full py-3.5 font-medium text-base transition-colors shadow-md cursor-pointer"
                 onClick={() => {
                   setIsWelcomeOpen(false)
-                  setIsQrOpen(false) // Close the QR code drawer as well
+                  setIsQrOpen(false)
                 }}
               >
-                Masuk ke Acara
+                Masuk ke Undangan
               </Button>
             </DrawerFooter>
           </div>
