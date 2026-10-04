@@ -70,6 +70,7 @@ export default function FloatingQr({ guestName, qrPayload, guestId, event }: Flo
           checked_in_at: payload.checked_in_at,
         })
         setIsWelcomeOpen(true)
+        setIsQrOpen(false)
         socket.disconnect() // Disconnect immediately to free server resources
       }
     })
